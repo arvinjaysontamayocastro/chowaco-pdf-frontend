@@ -1,0 +1,54 @@
+.file_input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 300px;
+  height: 300px;
+  padding: 50px;
+  color: black;
+  border: 2px black dashed;
+  border-radius: 12px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  font-family: sans-serif;
+  border: dashed 3px #cccccc;
+}
+.container aside {
+  border-top: solid 1px #cccccc;
+}
+.container aside h4 {
+  text-align: left;
+  padding: 0 12px;
+  margin: 12px 0 12px 0;
+}
+
+.container aside > ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 12px 12px 12px;
+}
+.container > aside > ul > li {
+  /* list-style: none; */
+  border: solid 1px #cccccc;
+  margin: none;
+  padding: 12px;
+}
+
+.container > div {
+  display: block;
+  padding-bottom: 36px;
+}
+
+.container > div > p {
+  font-weight: bolder;
+}
+
+.container > div > button {
+  font-weight: bolder;
+  padding: 12px;
+  background: none;
+  border: solid 1px #000000;
+}
