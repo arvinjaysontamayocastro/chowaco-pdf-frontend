@@ -11,7 +11,7 @@ function MainHeader() {
         Juicy Extracts
       </h1>
       <p>
-        <Link to="/create-post" className={classes.button}>
+        <Link to="/upload-new-pdf" className={classes.button}>
           {/* <MdPostAdd size={18} /> */}
           Upload New PDF
         </Link>

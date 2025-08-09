@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
 import Posts, { loader as postLoader } from "./routes/Posts.tsx";
-import NewPost from "./routes/NewPost.tsx"; //, { action as newPostAction }
+import NewPDF from "./routes/NewPDF.tsx"; //, { action as NewPDFAction }
 import RootLayout from "./routes/RootLayout";
 
 import "./index.css";
@@ -19,7 +19,7 @@ const router = createBrowserRouter([
         element: <Posts />,
         loader: postLoader,
         children: [
-          { path: "/create-post", element: <NewPost /> }, //, action: newPostAction
+          { path: "/upload-new-pdf", element: <NewPDF /> }, //, action: NewPDFAction
           { path: "/:id", element: <PDFReport />, loader: pdfReportLoader },
         ],
       }, // our domain

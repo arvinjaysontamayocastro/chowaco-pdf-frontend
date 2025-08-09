@@ -149,14 +149,17 @@ function PDFReport() {
         ) : null}
         <h1>PDF Report</h1>
         <div>
-          <h2>Extract All Structured Data</h2>
+          {isLoadingData ? (
+            <h2>Building Structured Data</h2>
+          ) : (
+            <h2>Structured Data</h2>
+          )}
           {/* <p className={classes.actions}>
             <button onClick={extractAll} disabled={isLoadingData}>
               {isLoadingData ? "Extracting..." : "Extract All"}
             </button>
           </p> */}
           <div className={classes.structured}>
-            <h3>Extracted Data:</h3>
             <pre
               style={{ background: "#f0f0f0", padding: "1rem" }}
               className={classes.pre}

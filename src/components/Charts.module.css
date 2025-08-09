@@ -1,19 +1,37 @@
 .container {
   border: 1px solid #ccc;
-  padding: 16px;
+}
+
+.tabbuttons {
+  display: flex;
 }
 
 .tabbuttons button {
-  margin-right: 8px;
-  padding: 8px 16px;
+  padding: 16px 3px;
   cursor: pointer;
+  flex: 1;
+  border: none;
+  border-right: solid 1px #bbbbbb;
+  border-bottom: solid 1px #bbbbbb;
+  padding-top: 21px;
 }
 
 .tabbuttons .active {
-  background-color: #007bff;
-  color: white;
+  background-image: linear-gradient(
+    to right,
+    rgb(250, 204, 21),
+    rgb(45, 212, 191)
+  );
+  color: #2a2630;
+  border-top: solid 5px #2a2630;
+  font-weight: bolder;
+  padding-top: 16px;
 }
 
 .tabcontent {
   margin-top: 16px;
+  padding: 16px;
+}
+.tabcontent table {
+  display: table;
 }

@@ -129,11 +129,11 @@
 }
 .charts {
   background-color: #ffffff;
-  padding: 1rem;
+  /* padding: 1rem; */
   margin-left: 24px;
   box-sizing: border-box;
-  border: solid 1px #cccccc;
-  border-top: solid 5px #cccccc;
+  /* border: solid 1px #cccccc; */
+  /* border-top: solid 5px #cccccc; */
   flex: 1;
 }
 
