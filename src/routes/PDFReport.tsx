@@ -1,10 +1,8 @@
-import React, { useState, ChangeEvent, useEffect } from "react";
+import { useState, ChangeEvent, useEffect } from "react";
 import axios from "axios";
 import classes from "./PDFReport.module.css";
-import Modal from "../components/Modal";
 import ChartsComponent from "../components/Charts";
-import { useLoaderData, Link, Form, redirect } from "react-router-dom";
-import FileUploadComponent from "../components/FileUploadComponent.module";
+import { useLoaderData } from "react-router-dom";
 import {
   BMP,
   ExtractedReport,
@@ -15,20 +13,15 @@ import {
   OutreachActivity,
   Summary,
 } from "../types/types";
-import KeyService from "../services/key.service";
 import DataService from "../services/data.service";
 const API_BASE = process.env.REACT_APP_API_BASE;
 
 function PDFReport() {
   const pdfReport: ExtractedReport = useLoaderData();
 
-  const [pdf, setPdf] = useState<File | null>(null);
   const [id, setId] = useState(pdfReport.id);
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+  setId(pdfReport.id);
   const [reportName, setReportName] = useState("");
-  const [isLoadingPDF, setIsLoadingPDF] = useState(false);
-  const [isLoadedPDF, setIsLoadedPDF] = useState(false);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [bmps, setBmps] = useState<BMP[]>([]);
   const [implementation, setImplementation] = useState<
@@ -43,11 +36,6 @@ function PDFReport() {
   const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setPdf(e.target.files[0]);
-    }
-  };
   let extractedReport = DataService.getData(id);
 
   const keys = [
@@ -124,7 +112,7 @@ function PDFReport() {
   };
 
   useEffect(() => {
-    console.log("pdfReport", pdfReport);
+    // console.log("pdfReport", pdfReport);
     if (pdfReport.isLoaded == true) {
       setReportName(pdfReport.name as string);
       setGoals(pdfReport.goals as Goal[]);
@@ -144,13 +132,11 @@ function PDFReport() {
   return (
     <main className={classes.main}>
       <form className={classes.form}>
-        {isLoadingData || isLoadingPDF ? (
-          <div className={classes.loading}>&nbsp;</div>
-        ) : null}
+        {isLoadingData ? <div className={classes.loading}>&nbsp;</div> : null}
         <h1>PDF Report</h1>
         <div>
           {isLoadingData ? (
-            <h2>Building Structured Data</h2>
+            <h2>Building Structured Data for {reportName}</h2>
           ) : (
             <h2>Structured Data</h2>
           )}
