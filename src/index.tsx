@@ -1,33 +1,33 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 
-import Posts, { loader as postLoader } from "./routes/Posts.tsx";
-import NewPDF from "./routes/NewPDF.tsx"; //, { action as NewPDFAction }
-import RootLayout from "./routes/RootLayout";
+import Posts, { loader as postLoader } from './routes/Posts.tsx';
+import NewPDF from './routes/NewPDF.tsx'; //, { action as NewPDFAction }
+import RootLayout from './routes/RootLayout';
 
-import "./index.css";
-import PDFReport, { loader as pdfReportLoader } from "./routes/PDFReport.tsx";
+import './index.css';
+import PDFReport, { loader as pdfReportLoader } from './routes/PDFReport.tsx';
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
     element: <RootLayout />,
     children: [
       {
-        path: "/",
+        path: '/',
         element: <Posts />,
         loader: postLoader,
         children: [
-          { path: "/upload-new-pdf", element: <NewPDF /> }, //, action: NewPDFAction
-          { path: "/:id", element: <PDFReport />, loader: pdfReportLoader },
+          { path: '/upload-new-pdf', element: <NewPDF /> }, //, action: NewPDFAction
+          { path: '/:id', element: <PDFReport />, loader: pdfReportLoader },
         ],
       }, // our domain
     ],
   },
 ]);
 
-createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {/* <App /> */}
     <RouterProvider router={router} />

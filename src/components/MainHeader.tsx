@@ -1,7 +1,7 @@
-import { MdPictureAsPdf } from "react-icons/md";
+import { MdPictureAsPdf } from 'react-icons/md';
 
-import classes from "./MainHeader.module.css";
-import { Link } from "react-router-dom";
+import classes from './MainHeader.module.css';
+import { Link } from 'react-router-dom';
 
 function MainHeader() {
   return (

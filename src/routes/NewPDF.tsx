@@ -1,16 +1,16 @@
-import { useState, ChangeEvent } from "react";
-import axios from "axios";
-import classes from "./NewPDF.module.css";
-import { useNavigate } from "react-router-dom";
-import { ExtractedReport } from "../types/types";
-import KeyService from "../services/key.service";
-import DataService from "../services/data.service";
+import { useState, ChangeEvent } from 'react';
+import axios from 'axios';
+import classes from './NewPDF.module.css';
+import { useNavigate } from 'react-router-dom';
+import { ExtractedReport } from '../types/types';
+import KeyService from '../services/key.service';
+import DataService from '../services/data.service';
 const API_BASE = process.env.REACT_APP_API_BASE;
 
 function NewPDF() {
   let pdf;
   const [pdfMessage, setPdfMessage] = useState(
-    "Click here or drag your file in the box"
+    'Click here or drag your file in the box'
   );
   const [isLoadingPDF, setIsLoadingPDF] = useState(false);
 
@@ -22,9 +22,9 @@ function NewPDF() {
       pdf = e.target.files[0];
       let pdfSize =
         pdf.size / 1024 <= 1024
-          ? Number(pdf.size / 1024).toFixed(2) + "KB"
-          : Number(pdf.size / 1024 / 1024).toFixed(2) + "MB";
-      setPdfMessage(pdf.name + ", " + pdfSize);
+          ? Number(pdf.size / 1024).toFixed(2) + 'KB'
+          : Number(pdf.size / 1024 / 1024).toFixed(2) + 'MB';
+      setPdfMessage(pdf.name + ', ' + pdfSize);
     }
     uploadPdf();
   };
@@ -38,14 +38,14 @@ function NewPDF() {
     console.log(_id);
 
     const formData = new FormData();
-    formData.append("pdf", pdf);
-    formData.append("guid", _id); // Add GUID so server gets req.body.guid
+    formData.append('pdf', pdf);
+    formData.append('guid', _id); // Add GUID so server gets req.body.guid
 
     try {
       axios
         .post(`${API_BASE}/upload`, formData, {
           headers: {
-            "Content-Type": "multipart/form-data",
+            'Content-Type': 'multipart/form-data',
           },
         })
         .then((res) => {
@@ -55,8 +55,8 @@ function NewPDF() {
           setIsLoadingPDF(false);
         });
     } catch (err) {
-      console.error("Upload failed:", err);
-      alert("Failed to upload PDF.");
+      console.error('Upload failed:', err);
+      alert('Failed to upload PDF.');
       setIsLoadingPDF(false);
     }
   };
@@ -83,7 +83,7 @@ function NewPDF() {
     DataService.setData(id, extractedReport);
     // console.log("redirecting to /" + id);
     await sleep(1000);
-    navigate("/" + id);
+    navigate('/' + id);
   };
 
   return (

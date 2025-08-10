@@ -1,8 +1,8 @@
-import { useState, ChangeEvent, useEffect } from "react";
-import axios from "axios";
-import classes from "./PDFReport.module.css";
-import ChartsComponent from "../components/Charts";
-import { useLoaderData } from "react-router-dom";
+import { useState, ChangeEvent, useEffect } from 'react';
+import axios from 'axios';
+import classes from './PDFReport.module.css';
+import ChartsComponent from '../components/Charts';
+import { useLoaderData } from 'react-router-dom';
 import {
   BMP,
   ExtractedReport,
@@ -12,8 +12,8 @@ import {
   MonitoringMetric,
   OutreachActivity,
   Summary,
-} from "../types/types";
-import DataService from "../services/data.service";
+} from '../types/types';
+import DataService from '../services/data.service';
 const API_BASE = process.env.REACT_APP_API_BASE;
 
 function PDFReport() {
@@ -21,7 +21,7 @@ function PDFReport() {
 
   const [id, setId] = useState(pdfReport.id);
   setId(pdfReport.id);
-  const [reportName, setReportName] = useState("");
+  const [reportName, setReportName] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [bmps, setBmps] = useState<BMP[]>([]);
   const [implementation, setImplementation] = useState<
@@ -39,55 +39,55 @@ function PDFReport() {
   let extractedReport = DataService.getData(id);
 
   const keys = [
-    "goals",
-    "bmps",
-    "implementation",
-    "monitoring",
-    "outreach",
-    "geographicAreas",
-    "summary",
+    'goals',
+    'bmps',
+    'implementation',
+    'monitoring',
+    'outreach',
+    'geographicAreas',
+    'summary',
   ] as const;
 
   const extractAll = async () => {
     setIsLoadingData(true);
-    console.log("id", id);
+    console.log('id', id);
     for (const key of keys) {
       try {
         const res = await axios.post(`${API_BASE}/ask`, { guid: id, key: key });
         const parsed = JSON.parse(res.data.answer);
 
         switch (key) {
-          case "goals":
+          case 'goals':
             extractedReport.goals = parsed[key] as Goal[];
             setGoals(parsed[key] as Goal[]);
             break;
-          case "bmps":
+          case 'bmps':
             extractedReport.bmps = parsed[key] as BMP[];
             setBmps(parsed[key] as BMP[]);
             break;
-          case "implementation":
+          case 'implementation':
             extractedReport.implementationActivities = parsed[
               key
             ] as ImplementationActivity[];
             setImplementation(parsed[key] as ImplementationActivity[]);
             break;
-          case "monitoring":
+          case 'monitoring':
             extractedReport.monitoringMetrics = parsed[
               key
             ] as MonitoringMetric[];
             setMonitoring(parsed[key] as MonitoringMetric[]);
             break;
-          case "outreach":
+          case 'outreach':
             extractedReport.outreachActivities = parsed[
               key
             ] as OutreachActivity[];
             setOutreach(parsed[key] as OutreachActivity[]);
             break;
-          case "geographicAreas":
+          case 'geographicAreas':
             extractedReport.geographicAreas = parsed[key] as GeographicArea[];
             setGeographicAreas(parsed[key] as GeographicArea[]);
             break;
-          case "summary":
+          case 'summary':
             extractedReport.summary = parsed[key] as Summary;
             setSummary(parsed[key] as Summary);
             break;
@@ -101,12 +101,12 @@ function PDFReport() {
       }
     }
     setIsLoadingData(false);
-    console.log("goals", goals);
+    console.log('goals', goals);
     setExtractedReport();
   };
 
   const setExtractedReport = () => {
-    console.log("setExtractedReport", extractedReport);
+    console.log('setExtractedReport', extractedReport);
     extractedReport.isLoaded = true;
     DataService.setData(id, extractedReport);
   };
@@ -147,7 +147,7 @@ function PDFReport() {
           </p> */}
           <div className={classes.structured}>
             <pre
-              style={{ background: "#f0f0f0", padding: "1rem" }}
+              style={{ background: '#f0f0f0', padding: '1rem' }}
               className={classes.pre}
             >
               {JSON.stringify(

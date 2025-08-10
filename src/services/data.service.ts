@@ -8,9 +8,9 @@ const DataService = {
   },
 
   setData: function (key: string, data: any) {
-    console.log("setting Up");
-    console.log("key", key);
-    console.log("data", data);
+    console.log('setting Up');
+    console.log('key', key);
+    console.log('data', data);
     localStorage.setItem(key, JSON.stringify(data));
   },
 };

@@ -1,31 +1,31 @@
-import React, { useState } from "react";
-import classes from "./Charts.module.css";
+import React, { useState } from 'react';
+import classes from './Charts.module.css';
 
 function ChartsComponent({ extractedReport }: any) {
-  const [activeTab, setActiveTab] = useState("summary");
+  const [activeTab, setActiveTab] = useState('summary');
 
   const tabs = [
-    { id: "summary", label: "Summary", content: extractedReport?.summary },
-    { id: "goals", label: "Goals", content: extractedReport?.goals },
-    { id: "bmps", label: "BMPs", content: extractedReport?.bmps },
+    { id: 'summary', label: 'Summary', content: extractedReport?.summary },
+    { id: 'goals', label: 'Goals', content: extractedReport?.goals },
+    { id: 'bmps', label: 'BMPs', content: extractedReport?.bmps },
     {
-      id: "implementationActivities",
-      label: "Implementations",
+      id: 'implementationActivities',
+      label: 'Implementations',
       content: extractedReport?.implementationActivities,
     },
     {
-      id: "monitoringMetrics",
-      label: "Monitoring Metrics",
+      id: 'monitoringMetrics',
+      label: 'Monitoring Metrics',
       content: extractedReport?.monitoringMetrics,
     },
     {
-      id: "outreachActivities",
-      label: "Outreach Activities",
+      id: 'outreachActivities',
+      label: 'Outreach Activities',
       content: extractedReport?.outreachActivities,
     },
     {
-      id: "geographicAreas",
-      label: "Geographic Areas",
+      id: 'geographicAreas',
+      label: 'Geographic Areas',
       content: extractedReport?.geographicAreas,
     },
   ];
@@ -57,7 +57,7 @@ function ChartsComponent({ extractedReport }: any) {
       );
     }
 
-    if (typeof data === "object") {
+    if (typeof data === 'object') {
       return (
         <table className={classes.table}>
           <tbody>
@@ -77,26 +77,26 @@ function ChartsComponent({ extractedReport }: any) {
 
   return (
     <div className={classes.container}>
-      {/* <table className="charts-css column show-labels show-data-on-hover">
+      {/* <table className='charts-css column show-labels show-data-on-hover'>
         <caption>Monthly Sales</caption>
         <thead>
           <tr>
-            <th scope="col">Month</th>
-            <th scope="col">Value</th>
+            <th scope='col'>Month</th>
+            <th scope='col'>Value</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <th scope="row">January</th>
-            <td style={{ "--size": 0.6 } as React.CSSProperties}></td>
+            <th scope='row'>January</th>
+            <td style={{ '--size': 0.6 } as React.CSSProperties}></td>
           </tr>
           <tr>
-            <th scope="row">February</th>
-            <td style={{ "--size": 0.9 } as React.CSSProperties}></td>
+            <th scope='row'>February</th>
+            <td style={{ '--size': 0.9 } as React.CSSProperties}></td>
           </tr>
           <tr>
-            <th scope="row">March</th>
-            <td style={{ "--size": 0.4 } as React.CSSProperties}></td>
+            <th scope='row'>March</th>
+            <td style={{ '--size': 0.4 } as React.CSSProperties}></td>
           </tr>
         </tbody>
       </table> */}
@@ -105,7 +105,7 @@ function ChartsComponent({ extractedReport }: any) {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={activeTab === tab.id ? classes.active : ""}
+            className={activeTab === tab.id ? classes.active : ''}
           >
             {tab.label}
           </button>

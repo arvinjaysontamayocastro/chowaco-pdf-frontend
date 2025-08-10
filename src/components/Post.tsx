@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import classes from "./Post.module.css";
+import { Link } from 'react-router-dom';
+import classes from './Post.module.css';
 
 function Post({ id, author, body }: any) {
   return (
