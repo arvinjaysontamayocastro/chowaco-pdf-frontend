@@ -42,7 +42,11 @@ function ChartsComponent({ extractedReport }: ChartsProps) {
     },
   ];
 
-  const renderTable = (data: any) => {
+  const renderTable = (
+    data: Array<
+      string | Record<string, unknown> | Array<Record<string, unknown>>
+    >
+  ) => {
     if (!data) return <div>No data available</div>;
 
     if (Array.isArray(data) && data.length > 0) {

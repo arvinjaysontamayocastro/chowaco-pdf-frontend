@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import classes from './PDFReport.module.css';
 import ChartsComponent from '../components/Charts';
-import { useLoaderData } from 'react-router-dom';
+import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 import {
   BMP,
   ExtractedReport,
@@ -48,61 +48,66 @@ function PDFReport() {
     'summary',
   ] as const;
 
-  const extractAll = async () => {
+  const extractAll = useCallback(async () => {
     setIsLoadingData(true);
+
+    // Start from the current report state or an empty one
+    const updatedReport = { ...extractedReport };
+
     for (const key of keys) {
       try {
-        const res = await axios.post(`${API_BASE}/ask`, { guid: id, key: key });
+        const res = await axios.post(`${API_BASE}/ask`, { guid: id, key });
         const parsed = JSON.parse(res.data.answer);
 
         switch (key) {
           case 'goals':
-            extractedReport.goals = parsed[key] as Goal[];
+            updatedReport.goals = parsed[key] as Goal[];
             setGoals(parsed[key] as Goal[]);
             break;
           case 'bmps':
-            extractedReport.bmps = parsed[key] as BMP[];
+            updatedReport.bmps = parsed[key] as BMP[];
             setBmps(parsed[key] as BMP[]);
             break;
           case 'implementation':
-            extractedReport.implementationActivities = parsed[
+            updatedReport.implementationActivities = parsed[
               key
             ] as ImplementationActivity[];
             setImplementation(parsed[key] as ImplementationActivity[]);
             break;
           case 'monitoring':
-            extractedReport.monitoringMetrics = parsed[
-              key
-            ] as MonitoringMetric[];
+            updatedReport.monitoringMetrics = parsed[key] as MonitoringMetric[];
             setMonitoring(parsed[key] as MonitoringMetric[]);
             break;
           case 'outreach':
-            extractedReport.outreachActivities = parsed[
+            updatedReport.outreachActivities = parsed[
               key
             ] as OutreachActivity[];
             setOutreach(parsed[key] as OutreachActivity[]);
             break;
           case 'geographicAreas':
-            extractedReport.geographicAreas = parsed[key] as GeographicArea[];
+            updatedReport.geographicAreas = parsed[key] as GeographicArea[];
             setGeographicAreas(parsed[key] as GeographicArea[]);
             break;
           case 'summary':
-            extractedReport.summary = parsed[key] as Summary;
+            updatedReport.summary = parsed[key] as Summary;
             setSummary(parsed[key] as Summary);
             break;
           default:
             alert(`Unknown key: ${key}`);
         }
-        // ⏱️ Wait 1 seconds before continuing
+
         await sleep(1000);
       } catch (err) {
         // alert('Failed to extract' + err);
       }
     }
-    setIsLoadingData(false);
-    // console.log('goals', goals);
+
+    updatedReport.isLoaded = true;
     setExtractedReport();
-  };
+    DataService.setData(id, updatedReport);
+
+    setIsLoadingData(false);
+  }, [id, keys, extractedReport]);
 
   const setExtractedReport = () => {
     extractedReport.isLoaded = true;
@@ -125,7 +130,18 @@ function PDFReport() {
     } else {
       extractAll();
     }
-  }, []);
+  }, [
+    extractAll,
+    pdfReport.bmps,
+    pdfReport.geographicAreas,
+    pdfReport.goals,
+    pdfReport.implementationActivities,
+    pdfReport.isLoaded,
+    pdfReport.monitoringMetrics,
+    pdfReport.name,
+    pdfReport.outreachActivities,
+    pdfReport.summary,
+  ]);
 
   return (
     <main className={classes.main}>
@@ -174,7 +190,7 @@ function PDFReport() {
 
 export default PDFReport;
 
-export async function loader({ params }: any) {
+export async function loader({ params }: LoaderFunctionArgs) {
   // try get from memory
   const id = params.id;
   if (id == null || id == undefined) {
