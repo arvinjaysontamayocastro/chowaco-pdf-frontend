@@ -77,6 +77,29 @@ function ChartsComponent({ extractedReport }: any) {
 
   return (
     <div className={classes.container}>
+      {/* <table className="charts-css column show-labels show-data-on-hover">
+        <caption>Monthly Sales</caption>
+        <thead>
+          <tr>
+            <th scope="col">Month</th>
+            <th scope="col">Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">January</th>
+            <td style={{ "--size": 0.6 } as React.CSSProperties}></td>
+          </tr>
+          <tr>
+            <th scope="row">February</th>
+            <td style={{ "--size": 0.9 } as React.CSSProperties}></td>
+          </tr>
+          <tr>
+            <th scope="row">March</th>
+            <td style={{ "--size": 0.4 } as React.CSSProperties}></td>
+          </tr>
+        </tbody>
+      </table> */}
       <div className={classes.tabbuttons}>
         {tabs.map((tab) => (
           <button
