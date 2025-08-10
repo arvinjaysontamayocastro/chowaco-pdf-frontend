@@ -1,7 +1,13 @@
 import { Link } from 'react-router-dom';
 import classes from './Post.module.css';
 
-function Post({ id, author, body }: any) {
+interface PostProps {
+  id: string; // or number, depending on your data
+  author: string;
+  body: string;
+}
+
+function Post({ id, author, body }: PostProps) {
   return (
     <li className={classes.post}>
       <Link to={id}>

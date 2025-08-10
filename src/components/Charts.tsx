@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
 import classes from './Charts.module.css';
+interface ReportData {
+  summary?: string | Record<string, unknown> | Array<Record<string, unknown>>;
+  goals?: Array<Record<string, unknown>>;
+  bmps?: Array<Record<string, unknown>>;
+  implementationActivities?: Array<Record<string, unknown>>;
+  monitoringMetrics?: Array<Record<string, unknown>>;
+  outreachActivities?: Array<Record<string, unknown>>;
+  geographicAreas?: Array<Record<string, unknown>>;
+}
+interface ChartsProps {
+  extractedReport?: ReportData;
+}
 
-function ChartsComponent({ extractedReport }: any) {
+function ChartsComponent({ extractedReport }: ChartsProps) {
   const [activeTab, setActiveTab] = useState('summary');
 
   const tabs = [

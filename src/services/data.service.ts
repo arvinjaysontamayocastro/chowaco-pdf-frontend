@@ -1,16 +1,17 @@
+import { ExtractedReport } from '../types/types';
+
 const DataService = {
   getData: function (key: string) {
-    if (localStorage.getItem(key) != null) {
-      return JSON.parse(localStorage.getItem(key)!);
-    } else {
+    const stored = localStorage.getItem(key);
+    if (!stored) return null;
+    try {
+      return JSON.parse(stored);
+    } catch {
       return null;
     }
   },
 
-  setData: function (key: string, data: any) {
-    console.log('setting Up');
-    console.log('key', key);
-    console.log('data', data);
+  setData: function (key: string, data: ExtractedReport) {
     localStorage.setItem(key, JSON.stringify(data));
   },
 };

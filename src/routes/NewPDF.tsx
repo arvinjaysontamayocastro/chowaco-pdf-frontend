@@ -47,14 +47,13 @@ function NewPDF() {
             'Content-Type': 'multipart/form-data',
           },
         })
-        .then((res) => {
+        .then(() => {
           setExtractedReportPre(_id, pdf.name);
         })
-        .catch((er) => {
+        .catch(() => {
           setIsLoadingPDF(false);
         });
     } catch (err) {
-      console.error('Upload failed:', err);
       alert('Failed to upload PDF.');
       setIsLoadingPDF(false);
     }

@@ -1,4 +1,4 @@
-import { useState, ChangeEvent, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import classes from './PDFReport.module.css';
 import ChartsComponent from '../components/Charts';
@@ -50,7 +50,6 @@ function PDFReport() {
 
   const extractAll = async () => {
     setIsLoadingData(true);
-    console.log('id', id);
     for (const key of keys) {
       try {
         const res = await axios.post(`${API_BASE}/ask`, { guid: id, key: key });
@@ -92,21 +91,20 @@ function PDFReport() {
             setSummary(parsed[key] as Summary);
             break;
           default:
-            console.warn(`Unknown key: ${key}`);
+            alert(`Unknown key: ${key}`);
         }
         // ⏱️ Wait 1 seconds before continuing
         await sleep(1000);
       } catch (err) {
-        console.error(`Failed to extract ${key}`, err);
+        // alert('Failed to extract' + err);
       }
     }
     setIsLoadingData(false);
-    console.log('goals', goals);
+    // console.log('goals', goals);
     setExtractedReport();
   };
 
   const setExtractedReport = () => {
-    console.log('setExtractedReport', extractedReport);
     extractedReport.isLoaded = true;
     DataService.setData(id, extractedReport);
   };
