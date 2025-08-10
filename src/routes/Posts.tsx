@@ -1,12 +1,12 @@
 import { Outlet } from 'react-router-dom';
-// import PostsList from '../components/PostsList';
+import ExtractedReportsList from '../components/ExtractedReportsList';
 
 function Posts() {
   return (
     <>
       <main>
         <Outlet />
-        {/* <PostsList /> */}
+        <ExtractedReportsList />
       </main>
     </>
   );

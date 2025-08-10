@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import classes from './PDFReport.module.css';
 import ChartsComponent from '../components/Charts';
@@ -14,29 +14,15 @@ import {
   Summary,
 } from '../types/types';
 import DataService from '../services/data.service';
+
 const API_BASE = process.env.REACT_APP_API_BASE;
 
 function PDFReport() {
-  const pdfReport: ExtractedReport = useLoaderData();
-
-  const [id, setId] = useState(pdfReport.id);
-  setId(pdfReport.id);
-  const [reportName, setReportName] = useState('');
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [bmps, setBmps] = useState<BMP[]>([]);
-  const [implementation, setImplementation] = useState<
-    ImplementationActivity[]
-  >([]);
-  const [monitoring, setMonitoring] = useState<MonitoringMetric[]>([]);
-  const [outreach, setOutreach] = useState<OutreachActivity[]>([]);
-  const [geographicAreas, setGeographicAreas] = useState<GeographicArea[]>([]);
-  const [summary, setSummary] = useState<Summary>();
-
+  const loadedReport: ExtractedReport = useLoaderData();
+  const [report, setReport] = useState<ExtractedReport>({ ...loadedReport });
   const [isLoadingData, setIsLoadingData] = useState(false);
-  const sleep = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
-
-  const extractedReport = DataService.getData(id);
+  const [currentStep, setCurrentStep] = useState<string>('');
+  const [progress, setProgress] = useState<number>(0);
 
   const keys = [
     'goals',
@@ -48,116 +34,112 @@ function PDFReport() {
     'summary',
   ] as const;
 
-  const extractAll = useCallback(async () => {
+  const sleep = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
+  const extractFromPdfReport = () => {
+    setReport({ ...loadedReport });
+  };
+
+  const extractAll = async () => {
     setIsLoadingData(true);
 
-    // Start from the current report state or an empty one
-    const updatedReport = { ...extractedReport };
-
-    const setExtractedReport = () => {
-      extractedReport.isLoaded = true;
-      DataService.setData(id, extractedReport);
-    };
-
-    for (const key of keys) {
+    if (report.isLoaded) {
+      extractFromPdfReport();
+    } else {
       try {
-        const res = await axios.post(`${API_BASE}/ask`, { guid: id, key });
-        const parsed = JSON.parse(res.data.answer);
+        const updatedReport = { ...report };
 
-        switch (key) {
-          case 'goals':
-            updatedReport.goals = parsed[key] as Goal[];
-            setGoals(parsed[key] as Goal[]);
-            break;
-          case 'bmps':
-            updatedReport.bmps = parsed[key] as BMP[];
-            setBmps(parsed[key] as BMP[]);
-            break;
-          case 'implementation':
-            updatedReport.implementationActivities = parsed[
-              key
-            ] as ImplementationActivity[];
-            setImplementation(parsed[key] as ImplementationActivity[]);
-            break;
-          case 'monitoring':
-            updatedReport.monitoringMetrics = parsed[key] as MonitoringMetric[];
-            setMonitoring(parsed[key] as MonitoringMetric[]);
-            break;
-          case 'outreach':
-            updatedReport.outreachActivities = parsed[
-              key
-            ] as OutreachActivity[];
-            setOutreach(parsed[key] as OutreachActivity[]);
-            break;
-          case 'geographicAreas':
-            updatedReport.geographicAreas = parsed[key] as GeographicArea[];
-            setGeographicAreas(parsed[key] as GeographicArea[]);
-            break;
-          case 'summary':
-            updatedReport.summary = parsed[key] as Summary;
-            setSummary(parsed[key] as Summary);
-            break;
-          default:
-            alert(`Unknown key: ${key}`);
+        // Batch size for parallel requests
+        const batchSize = 1;
+
+        for (let i = 0; i < keys.length; i += batchSize) {
+          const batchKeys = keys.slice(i, i + batchSize);
+
+          // Show which keys are being processed
+          setCurrentStep(batchKeys.join(', '));
+          setProgress(Math.round((i / keys.length) * 100));
+
+          const results = await Promise.all(
+            batchKeys.map(async (key) => {
+              const res = await axios.post(`${API_BASE}/ask`, {
+                guid: report.id,
+                key,
+              });
+              const parsed = JSON.parse(res.data.answer);
+              return { key, value: parsed[key] };
+            })
+          );
+          for (const { key, value } of results) {
+            switch (key) {
+              case 'goals':
+                updatedReport.goals = value as Goal[];
+                break;
+              case 'bmps':
+                updatedReport.bmps = value as BMP[];
+                break;
+              case 'implementation':
+                updatedReport.implementationActivities =
+                  value as ImplementationActivity[];
+                break;
+              case 'monitoring':
+                updatedReport.monitoringMetrics = value as MonitoringMetric[];
+                break;
+              case 'outreach':
+                updatedReport.outreachActivities = value as OutreachActivity[];
+                break;
+              case 'geographicAreas':
+                updatedReport.geographicAreas = value as GeographicArea[];
+                break;
+              case 'summary':
+                updatedReport.summary = value as Summary;
+                break;
+              default:
+                alert(`Unknown key: ${key}`);
+            }
+          }
+
+          // Wait 1 second before next batch
+          // if (i + batchSize < keys.length) {
+          //   await sleep(1000);
+          // }
         }
 
-        await sleep(1000);
+        updatedReport.isLoaded = true;
+        setReport(updatedReport);
+        DataService.setData(report.id, updatedReport);
       } catch (err) {
-        // alert('Failed to extract' + err);
+        console.error('Extraction failed', err);
       }
     }
 
-    updatedReport.isLoaded = true;
-    setExtractedReport();
-    DataService.setData(id, updatedReport);
-
     setIsLoadingData(false);
-  }, [id, keys, extractedReport, setIsLoadingData]);
+  };
+
   useEffect(() => {
-    // console.log("pdfReport", pdfReport);
-    if (pdfReport.isLoaded == true) {
-      setReportName(pdfReport.name as string);
-      setGoals(pdfReport.goals as Goal[]);
-      setBmps(pdfReport.bmps as BMP[]);
-      setImplementation(
-        pdfReport.implementationActivities as ImplementationActivity[]
-      );
-      setMonitoring(pdfReport.monitoringMetrics as MonitoringMetric[]);
-      setOutreach(pdfReport.outreachActivities as OutreachActivity[]);
-      setGeographicAreas(pdfReport.geographicAreas as GeographicArea[]);
-      setSummary(pdfReport.summary as Summary);
-    } else {
-      extractAll();
-    }
-  }, [
-    extractAll,
-    pdfReport.bmps,
-    pdfReport.geographicAreas,
-    pdfReport.goals,
-    pdfReport.implementationActivities,
-    pdfReport.isLoaded,
-    pdfReport.monitoringMetrics,
-    pdfReport.name,
-    pdfReport.outreachActivities,
-    pdfReport.summary,
-  ]);
+    extractAll();
+  }, [loadedReport]);
 
   return (
     <main className={classes.main}>
       <form className={classes.form}>
-        {isLoadingData ? <div className={classes.loading}>&nbsp;</div> : null}
+        {isLoadingData && <div className={classes.loading}>&nbsp;</div>}
         <h1>PDF Report</h1>
         <div>
           {isLoadingData ? (
-            <h2>Building Structured Data for {reportName}</h2>
+            <div>
+              <h2>Building Structured Data for {report.name}</h2>
+              <p>Extracting: {currentStep || 'Starting...'}</p>
+              <div className={classes.progressBar}>
+                <div
+                  className={classes.progress}
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+            </div>
           ) : (
             <h2>Structured Data</h2>
           )}
-          {/* <p className={classes.actions}>
-            <button onClick={extractAll} disabled={isLoadingData}>
-              {isLoadingData ? "Extracting..." : "Extract All"}
-            </button>
-          </p> */}
           <div className={classes.structured}>
             <pre
               style={{ background: '#f0f0f0', padding: '1rem' }}
@@ -165,13 +147,13 @@ function PDFReport() {
             >
               {JSON.stringify(
                 {
-                  goals,
-                  bmps,
-                  implementation,
-                  monitoring,
-                  outreach,
-                  geographicAreas,
-                  summary,
+                  goals: report.goals,
+                  bmps: report.bmps,
+                  implementation: report.implementationActivities,
+                  monitoring: report.monitoringMetrics,
+                  outreach: report.outreachActivities,
+                  geographicAreas: report.geographicAreas,
+                  summary: report.summary,
                 },
                 null,
                 2
@@ -181,7 +163,7 @@ function PDFReport() {
         </div>
       </form>
       <div className={classes.charts}>
-        <ChartsComponent extractedReport={extractedReport} />
+        <ChartsComponent extractedReport={report} />
       </div>
     </main>
   );
@@ -190,13 +172,14 @@ function PDFReport() {
 export default PDFReport;
 
 export async function loader({ params }: LoaderFunctionArgs) {
-  // try get from memory
   const id = params.id;
-  if (id == null || id == undefined) {
-    return false;
-  }
+  if (!id) return null;
+
   const localData = DataService.getData(id);
-  if (localData != null && localData != undefined) {
-    return localData;
-  }
+  if (localData) return localData;
+
+  // Fetch fresh data from API if not in cache
+  const res = await fetch(`${API_BASE}/pdf/${id}`);
+  if (!res.ok) throw new Response('Not Found', { status: 404 });
+  return res.json();
 }

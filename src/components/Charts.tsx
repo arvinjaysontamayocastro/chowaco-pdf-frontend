@@ -10,35 +10,35 @@ interface ReportData {
   geographicAreas?: Array<Record<string, unknown>>;
 }
 interface ChartsProps {
-  extractedReport?: ReportData;
+  pdfReport?: ReportData;
 }
 
-function ChartsComponent({ extractedReport }: ChartsProps) {
+function ChartsComponent({ pdfReport }: ChartsProps) {
   const [activeTab, setActiveTab] = useState('summary');
 
   const tabs = [
-    { id: 'summary', label: 'Summary', content: extractedReport?.summary },
-    { id: 'goals', label: 'Goals', content: extractedReport?.goals },
-    { id: 'bmps', label: 'BMPs', content: extractedReport?.bmps },
+    { id: 'summary', label: 'Summary', content: pdfReport?.summary },
+    { id: 'goals', label: 'Goals', content: pdfReport?.goals },
+    { id: 'bmps', label: 'BMPs', content: pdfReport?.bmps },
     {
       id: 'implementationActivities',
       label: 'Implementations',
-      content: extractedReport?.implementationActivities,
+      content: pdfReport?.implementationActivities,
     },
     {
       id: 'monitoringMetrics',
       label: 'Monitoring Metrics',
-      content: extractedReport?.monitoringMetrics,
+      content: pdfReport?.monitoringMetrics,
     },
     {
       id: 'outreachActivities',
       label: 'Outreach Activities',
-      content: extractedReport?.outreachActivities,
+      content: pdfReport?.outreachActivities,
     },
     {
       id: 'geographicAreas',
       label: 'Geographic Areas',
-      content: extractedReport?.geographicAreas,
+      content: pdfReport?.geographicAreas,
     },
   ];
 
