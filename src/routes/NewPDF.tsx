@@ -20,7 +20,7 @@ function NewPDF() {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       pdf = e.target.files[0];
-      let pdfSize =
+      const pdfSize =
         pdf.size / 1024 <= 1024
           ? Number(pdf.size / 1024).toFixed(2) + 'KB'
           : Number(pdf.size / 1024 / 1024).toFixed(2) + 'MB';
@@ -34,8 +34,7 @@ function NewPDF() {
     // if (!pdf || isLoadingPDF) return;
     setIsLoadingPDF(true);
 
-    let _id = KeyService.createGUID();
-    console.log(_id);
+    const _id = KeyService.createGUID();
 
     const formData = new FormData();
     formData.append('pdf', pdf);
@@ -63,7 +62,7 @@ function NewPDF() {
   const setExtractedReportPre = async (id: string, pdfName: string) => {
     // console.log("id", id);
     // console.log("pdfName", pdfName);
-    let extractedReport: ExtractedReport = {
+    const extractedReport: ExtractedReport = {
       id: id,
       isLoaded: false,
       name: pdfName,

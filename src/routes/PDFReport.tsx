@@ -36,7 +36,7 @@ function PDFReport() {
   const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
-  let extractedReport = DataService.getData(id);
+  const extractedReport = DataService.getData(id);
 
   const keys = [
     'goals',
@@ -178,11 +178,11 @@ export default PDFReport;
 
 export async function loader({ params }: any) {
   // try get from memory
-  let id = params.id;
+  const id = params.id;
   if (id == null || id == undefined) {
     return false;
   }
-  let localData = DataService.getData(id);
+  const localData = DataService.getData(id);
   if (localData != null && localData != undefined) {
     return localData;
   }
