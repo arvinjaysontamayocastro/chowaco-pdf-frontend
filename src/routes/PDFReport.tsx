@@ -41,87 +41,86 @@ function PDFReport() {
     setReport({ ...loadedReport });
   };
 
-  // const extractAll = async () => {
+  const extractAll = async () => {
+    setIsLoadingData(true);
 
-  // };
+    if (report.isLoaded) {
+      extractFromPdfReport();
+    } else {
+      try {
+        const updatedReport = { ...report };
+
+        // Batch size for parallel requests
+        const batchSize = 1;
+
+        for (let i = 0; i < keys.length; i += batchSize) {
+          const batchKeys = keys.slice(i, i + batchSize);
+
+          // Show which keys are being processed
+          setCurrentStep(batchKeys.join(', '));
+          setProgress(Math.round((i / keys.length) * 100));
+
+          const results = await Promise.all(
+            batchKeys.map(async (key) => {
+              const res = await axios.post(`${API_BASE}/ask`, {
+                guid: report.id,
+                key,
+              });
+              const parsed = JSON.parse(res.data.answer);
+              return { key, value: parsed[key] };
+            })
+          );
+          for (const { key, value } of results) {
+            switch (key) {
+              case 'goals':
+                updatedReport.goals = value as Goal[];
+                break;
+              case 'bmps':
+                updatedReport.bmps = value as BMP[];
+                break;
+              case 'implementation':
+                updatedReport.implementationActivities =
+                  value as ImplementationActivity[];
+                break;
+              case 'monitoring':
+                updatedReport.monitoringMetrics = value as MonitoringMetric[];
+                break;
+              case 'outreach':
+                updatedReport.outreachActivities = value as OutreachActivity[];
+                break;
+              case 'geographicAreas':
+                updatedReport.geographicAreas = value as GeographicArea[];
+                break;
+              case 'summary':
+                updatedReport.summary = value as Summary;
+                break;
+              default:
+                alert(`Unknown key: ${key}`);
+            }
+          }
+
+          // Wait 1 second before next batch
+          // if (i + batchSize < keys.length) {
+          //   await sleep(1000);
+          // }
+        }
+
+        updatedReport.isLoaded = true;
+        setReport(updatedReport);
+        DataService.setData(report.id, updatedReport);
+      } catch (err) {
+        // console.error('Extraction failed', err);
+      }
+    }
+
+    setIsLoadingData(false);
+  };
 
   useEffect(() => {
     return () => {
-      setIsLoadingData(true);
-
-      if (report.isLoaded) {
-        extractFromPdfReport();
-      } else {
-        try {
-          const updatedReport = { ...report };
-
-          // Batch size for parallel requests
-          const batchSize = 1;
-
-          for (let i = 0; i < keys.length; i += batchSize) {
-            const batchKeys = keys.slice(i, i + batchSize);
-
-            // Show which keys are being processed
-            setCurrentStep(batchKeys.join(', '));
-            setProgress(Math.round((i / keys.length) * 100));
-
-            const results = await Promise.all(
-              batchKeys.map(async (key) => {
-                const res = await axios.post(`${API_BASE}/ask`, {
-                  guid: report.id,
-                  key,
-                });
-                const parsed = JSON.parse(res.data.answer);
-                return { key, value: parsed[key] };
-              })
-            );
-            for (const { key, value } of results) {
-              switch (key) {
-                case 'goals':
-                  updatedReport.goals = value as Goal[];
-                  break;
-                case 'bmps':
-                  updatedReport.bmps = value as BMP[];
-                  break;
-                case 'implementation':
-                  updatedReport.implementationActivities =
-                    value as ImplementationActivity[];
-                  break;
-                case 'monitoring':
-                  updatedReport.monitoringMetrics = value as MonitoringMetric[];
-                  break;
-                case 'outreach':
-                  updatedReport.outreachActivities =
-                    value as OutreachActivity[];
-                  break;
-                case 'geographicAreas':
-                  updatedReport.geographicAreas = value as GeographicArea[];
-                  break;
-                case 'summary':
-                  updatedReport.summary = value as Summary;
-                  break;
-                default:
-                  alert(`Unknown key: ${key}`);
-              }
-            }
-
-            // Wait 1 second before next batch
-            // if (i + batchSize < keys.length) {
-            //   await sleep(1000);
-            // }
-          }
-
-          updatedReport.isLoaded = true;
-          setReport(updatedReport);
-          DataService.setData(report.id, updatedReport);
-        } catch (err) {
-          // console.error('Extraction failed', err);
-        }
-      }
-
-      setIsLoadingData(false);
+      extractAll();
     };
-  }, [extractFromPdfReport, keys, report]);
+  }, []);
 
   return (
     <main className={classes.main}>
