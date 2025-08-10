@@ -54,6 +54,11 @@ function PDFReport() {
     // Start from the current report state or an empty one
     const updatedReport = { ...extractedReport };
 
+    const setExtractedReport = () => {
+      extractedReport.isLoaded = true;
+      DataService.setData(id, extractedReport);
+    };
+
     for (const key of keys) {
       try {
         const res = await axios.post(`${API_BASE}/ask`, { guid: id, key });
@@ -107,13 +112,7 @@ function PDFReport() {
     DataService.setData(id, updatedReport);
 
     setIsLoadingData(false);
-  }, [id, keys, extractedReport]);
-
-  const setExtractedReport = () => {
-    extractedReport.isLoaded = true;
-    DataService.setData(id, extractedReport);
-  };
-
+  }, [id, keys, extractedReport, setIsLoadingData]);
   useEffect(() => {
     // console.log("pdfReport", pdfReport);
     if (pdfReport.isLoaded == true) {
