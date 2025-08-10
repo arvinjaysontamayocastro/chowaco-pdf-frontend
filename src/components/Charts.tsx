@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import classes from './Charts.module.css';
+import 'charts.css';
+
 interface ReportData {
   summary?: string | Record<string, unknown> | Array<Record<string, unknown>>;
   goals?: Array<Record<string, unknown>>;
@@ -15,6 +17,7 @@ interface ChartsProps {
 
 function ChartsComponent({ pdfReport }: ChartsProps) {
   const [activeTab, setActiveTab] = useState('summary');
+  const [viewMode, setViewMode] = useState<'table' | 'chart'>('table');
 
   const tabs = [
     { id: 'summary', label: 'Summary', content: pdfReport?.summary },
@@ -42,11 +45,13 @@ function ChartsComponent({ pdfReport }: ChartsProps) {
     },
   ];
 
-  const renderTable = (
-    data: Array<
-      string | Record<string, unknown> | Array<Record<string, unknown>>
-    >
-  ) => {
+  const isNumericDataset = (data: any[]) => {
+    if (!Array.isArray(data) || data.length === 0) return false;
+    const firstRow = Object.values(data[0]);
+    return firstRow.every((val) => typeof val === 'number');
+  };
+
+  const renderTable = (data: any) => {
     if (!data) return <div>No data available</div>;
 
     if (Array.isArray(data) && data.length > 0) {
@@ -88,39 +93,65 @@ function ChartsComponent({ pdfReport }: ChartsProps) {
       );
     }
 
-    return <div>No data available</div>;
+    return <div>{String(data)}</div>;
+  };
+
+  const renderChart = (data: any, label: string) => {
+    if (!isNumericDataset(data)) {
+      return <div>No chart available for this data</div>;
+    }
+
+    const keys = Object.keys(data[0]);
+    return (
+      <table
+        className="charts-css column show-labels show-data-on-hover"
+        style={{ height: '300px' }}
+      >
+        <caption>{label}</caption>
+        <thead>
+          <tr>
+            {keys.map((key) => (
+              <th key={key} scope="col">
+                {key}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, idx) => (
+            <tr key={idx}>
+              {keys.map((key) => (
+                <td
+                  key={key}
+                  style={
+                    {
+                      '--size': String(
+                        row[key] / Math.max(...data.map((r) => r[key]))
+                      ),
+                    } as React.CSSProperties
+                  }
+                >
+                  <span>{row[key]}</span>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
   };
 
   return (
     <div className={classes.container}>
-      {/* <table className='charts-css column show-labels show-data-on-hover'>
-        <caption>Monthly Sales</caption>
-        <thead>
-          <tr>
-            <th scope='col'>Month</th>
-            <th scope='col'>Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope='row'>January</th>
-            <td style={{ '--size': 0.6 } as React.CSSProperties}></td>
-          </tr>
-          <tr>
-            <th scope='row'>February</th>
-            <td style={{ '--size': 0.9 } as React.CSSProperties}></td>
-          </tr>
-          <tr>
-            <th scope='row'>March</th>
-            <td style={{ '--size': 0.4 } as React.CSSProperties}></td>
-          </tr>
-        </tbody>
-      </table> */}
+      {/* Tab Buttons */}
       <div className={classes.tabbuttons}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => {
+              setActiveTab(tab.id);
+              setViewMode('table');
+            }}
             className={activeTab === tab.id ? classes.active : ''}
           >
             {tab.label}
@@ -128,11 +159,32 @@ function ChartsComponent({ pdfReport }: ChartsProps) {
         ))}
       </div>
 
+      {/* View Mode Toggle */}
+      <div className={classes.viewtoggle}>
+        <button
+          onClick={() => setViewMode('table')}
+          className={viewMode === 'table' ? classes.active : ''}
+        >
+          Table View
+        </button>
+        <button
+          onClick={() => setViewMode('chart')}
+          className={viewMode === 'chart' ? classes.active : ''}
+        >
+          Chart View
+        </button>
+      </div>
+
+      {/* Tab Content */}
       <div className={classes.tabcontent}>
         {tabs.map(
           (tab) =>
             activeTab === tab.id && (
-              <div key={tab.id}>{renderTable(tab.content)}</div>
+              <div key={tab.id} className={classes.contentwrapper}>
+                {viewMode === 'table'
+                  ? renderTable(tab.content)
+                  : renderChart(tab.content, tab.label)}
+              </div>
             )
         )}
       </div>
