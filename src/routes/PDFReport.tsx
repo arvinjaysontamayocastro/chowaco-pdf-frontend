@@ -81,7 +81,7 @@ function PDFReport() {
                   break;
               }
             } catch (err) {
-              console.error(`Failed to fetch key: ${key}`, err);
+              // console.error(`Failed to fetch key: ${key}`, err);
             } finally {
               completed++;
               setProgress(Math.round((completed / total) * 100));
