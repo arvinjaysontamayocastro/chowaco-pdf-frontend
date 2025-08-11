@@ -1,7 +1,6 @@
-// import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import classes from './PDFReport.module.css';
-// import ChartsComponent from '../components/Charts';
 import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 import {
   BMP,
@@ -28,55 +27,122 @@ const keys = [
 ] as const;
 
 function PDFReport() {
-  const report: ExtractedReport = useLoaderData();
+  const initialReport: ExtractedReport = useLoaderData();
+  const [report, setReport] = useState<ExtractedReport>(initialReport);
+  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState<string | null>(null);
+  const [loading, setLoading] = useState(!initialReport?.isLoaded);
+
+  useEffect(() => {
+    // Only fetch if report exists and is not loaded
+    if (!report || report.isLoaded) return;
+
+    const fetchData = async () => {
+      try {
+        const total = keys.length;
+        let completed = 0;
+
+        // Fetch all keys in parallel
+        await Promise.all(
+          keys.map(async (key) => {
+            setCurrentStep(key);
+
+            try {
+              const res = await axios.post(
+                `${API_BASE}/ask`,
+                { guid: report.id, key },
+                { headers: { 'Content-Type': 'application/json' } }
+              );
+
+              const parsed = JSON.parse(res.data.answer);
+              switch (key) {
+                case 'goals':
+                  report.goals = parsed[key] as Goal[];
+                  break;
+                case 'bmps':
+                  report.bmps = parsed[key] as BMP[];
+                  break;
+                case 'implementation':
+                  report.implementationActivities = parsed[
+                    key
+                  ] as ImplementationActivity[];
+                  break;
+                case 'monitoring':
+                  report.monitoringMetrics = parsed[key] as MonitoringMetric[];
+                  break;
+                case 'outreach':
+                  report.outreachActivities = parsed[key] as OutreachActivity[];
+                  break;
+                case 'geographicAreas':
+                  report.geographicAreas = parsed[key] as GeographicArea[];
+                  break;
+                case 'summary':
+                  report.summary = parsed[key] as Summary;
+                  break;
+              }
+            } catch (err) {
+              console.error(`Failed to fetch key: ${key}`, err);
+            } finally {
+              completed++;
+              setProgress(Math.round((completed / total) * 100));
+            }
+          })
+        );
+
+        // Mark as loaded & save to DataService
+        report.isLoaded = true;
+        DataService.setData(report.id, report);
+        setReport({ ...report });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [report]);
 
   return (
     <main className={classes.main}>
       <form className={classes.form}>
-        {/* {isLoadingData && <div className={classes.loading}>&nbsp;</div>} */}
-        <h1>PDF Report</h1>
-        <div>
-          {/* {isLoadingData ? (
-            <div>
-              <h2>Building Structured Data for {report.name}</h2>
-              <p>Extracting: {currentStep || 'Starting...'}</p>
-              <div className={classes.progressBar}>
-                <div
-                  className={classes.progress}
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
+        {loading ? (
+          <>
+            <h1>PDF Report</h1>
+            <h2>Building Structured Data for {report?.name}</h2>
+            <p>Extracting: {currentStep || 'Starting...'}</p>
+            <div className={classes.progressBar}>
+              <div
+                className={classes.progress}
+                style={{ width: `${progress}%` }}
+              ></div>
             </div>
-          ) : (
+          </>
+        ) : (
+          <>
+            <h1>PDF Report</h1>
             <h2>Structured Data</h2>
-          )} */}
-
-          <h2>Structured Data</h2>
-          <div className={classes.structured}>
-            <pre
-              style={{ background: '#f0f0f0', padding: '1rem' }}
-              className={classes.pre}
-            >
-              {JSON.stringify(
-                {
-                  goals: report.goals,
-                  bmps: report.bmps,
-                  implementation: report.implementationActivities,
-                  monitoring: report.monitoringMetrics,
-                  outreach: report.outreachActivities,
-                  geographicAreas: report.geographicAreas,
-                  summary: report.summary,
-                },
-                null,
-                2
-              )}
-            </pre>
-          </div>
-        </div>
+            <div className={classes.structured}>
+              <pre
+                style={{ background: '#f0f0f0', padding: '1rem' }}
+                className={classes.pre}
+              >
+                {JSON.stringify(
+                  {
+                    goals: report.goals,
+                    bmps: report.bmps,
+                    implementation: report.implementationActivities,
+                    monitoring: report.monitoringMetrics,
+                    outreach: report.outreachActivities,
+                    geographicAreas: report.geographicAreas,
+                    summary: report.summary,
+                  },
+                  null,
+                  2
+                )}
+              </pre>
+            </div>
+          </>
+        )}
       </form>
-      <div className={classes.charts}>
-        {/* <ChartsComponent extractedReport={report} /> */}
-      </div>
     </main>
   );
 }
@@ -88,69 +154,8 @@ export async function loader({ params }: LoaderFunctionArgs) {
   if (!id) return null;
 
   const report = DataService.getData(id);
-  if (report) {
-    if (report.isLoaded) {
-      // If the report is already loaded, we can return it immediately
-      return report;
-    } else {
-      const batchSize = 1;
+  // console.log('report', report);
 
-      for (let i = 0; i < keys.length; i += batchSize) {
-        const batchKeys = keys.slice(i, i + batchSize);
-
-        // Show which keys are being processed
-        // setCurrentStep(batchKeys.join(', '));
-        // setProgress(Math.round((i / keys.length) * 100));
-
-        const results = await Promise.all(
-          batchKeys.map(async (key) => {
-            const res = await axios.post(`${API_BASE}/ask`, {
-              guid: report.id,
-              key,
-            });
-            const parsed = JSON.parse(res.data.answer);
-            return { key, value: parsed[key] };
-          })
-        );
-        for (const { key, value } of results) {
-          switch (key) {
-            case 'goals':
-              report.goals = value as Goal[];
-              break;
-            case 'bmps':
-              report.bmps = value as BMP[];
-              break;
-            case 'implementation':
-              report.implementationActivities =
-                value as ImplementationActivity[];
-              break;
-            case 'monitoring':
-              report.monitoringMetrics = value as MonitoringMetric[];
-              break;
-            case 'outreach':
-              report.outreachActivities = value as OutreachActivity[];
-              break;
-            case 'geographicAreas':
-              report.geographicAreas = value as GeographicArea[];
-              break;
-            case 'summary':
-              report.summary = value as Summary;
-              break;
-            default:
-              alert(`Unknown key: ${key}`);
-          }
-        }
-        DataService.setData(report.id, report); // save updated report
-        // TO DO: delete data in server // for now let it be there
-        return report;
-      }
-
-      // Wait 1 second before next batch
-      // if (i + batchSize < keys.length) {
-      //   await sleep(1000);
-      // }
-    }
-  } else {
-    return null;
-  }
+  // Always return whatever we have in DataService
+  return report || null;
 }
