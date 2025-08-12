@@ -33,10 +33,14 @@ function PDFReport() {
   const [currentStep, setCurrentStep] = useState<string | null>(null);
   const [loading, setLoading] = useState(!initialReport?.isLoaded);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // Only fetch if report exists and is not loaded
-    if (!report || report.isLoaded) return;
+    if (!report) return;
 
+    if (report.isLoaded) {
+      return;
+    }
     const fetchData = async () => {
       try {
         const total = keys.length;
@@ -99,7 +103,7 @@ function PDFReport() {
     };
 
     fetchData();
-  }, [report]);
+  });
 
   return (
     <main className={classes.main}>
