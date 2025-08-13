@@ -18,6 +18,21 @@ import DataService from '../services/data.service';
 
 const API_BASE = process.env.REACT_APP_API_BASE;
 
+function parseStrict(answer: string, key: string) {
+  try {
+    const obj = JSON.parse(answer);
+    const val = (obj && obj[key]) ?? null;
+    if (val == null) {
+      // console.debug(`[ask:${key}] key missing in JSON`, { obj }); // Dev-only
+      return null;
+    }
+    return val;
+  } catch (e) {
+    // console.debug(`[ask:${key}] JSON.parse failed`, { answer, error: e }); // Dev-only
+    return null;
+  }
+}
+
 function computeSummary(report: ExtractedReport): Summary {
   const totalGoals = Array.isArray(report.goals) ? report.goals.length : 0;
   const totalBMPs = Array.isArray(report.bmps) ? report.bmps.length : 0;
@@ -110,42 +125,42 @@ function PDFReport() {
                 { guid: report.id, key },
                 { headers: { 'Content-Type': 'application/json' } }
               );
-
-              const parsed = JSON.parse(res.data.answer);
-
+              const arr = parseStrict(res.data.answer, key);
               switch (key) {
                 case 'identity':
-                  draft.identity =
-                    (parsed[key] as ReportIdentity) ?? draft.identity;
+                  draft.identity = arr as ReportIdentity;
                   break;
                 case 'pollutants':
-                  draft.pollutants = (parsed[key] as Pollutant[]) ?? [];
+                  draft.pollutants = Array.isArray(arr)
+                    ? (arr as Pollutant[])
+                    : [];
                   break;
                 case 'goals':
-                  draft.goals = (parsed[key] as Goal[]) ?? [];
+                  draft.goals = Array.isArray(arr) ? (arr as Goal[]) : [];
                   break;
                 case 'bmps':
-                  draft.bmps = (parsed[key] as BMP[]) ?? [];
+                  draft.bmps = Array.isArray(arr) ? (arr as BMP[]) : [];
                   break;
                 case 'implementation':
-                  draft.implementationActivities =
-                    (parsed[key] as ImplementationActivity[]) ?? [];
+                  draft.implementationActivities = Array.isArray(arr)
+                    ? (arr as ImplementationActivity[])
+                    : [];
                   break;
                 case 'monitoring':
-                  draft.monitoringMetrics =
-                    (parsed[key] as MonitoringMetric[]) ?? [];
+                  draft.monitoringMetrics = Array.isArray(arr)
+                    ? (arr as MonitoringMetric[])
+                    : [];
                   break;
                 case 'outreach':
-                  draft.outreachActivities =
-                    (parsed[key] as OutreachActivity[]) ?? [];
+                  draft.outreachActivities = Array.isArray(arr)
+                    ? (arr as OutreachActivity[])
+                    : [];
                   break;
                 case 'geographicAreas':
-                  draft.geographicAreas =
-                    (parsed[key] as GeographicArea[]) ?? [];
+                  draft.geographicAreas = Array.isArray(arr)
+                    ? (arr as GeographicArea[])
+                    : [];
                   break;
-                // case 'summary':
-                //   draft.summary = (parsed[key] as Summary) ?? draft.summary;
-                //   break;
               }
             } catch (_err) {
               // swallow per-key errors to keep the batch going
