@@ -18,6 +18,57 @@ import DataService from '../services/data.service';
 
 const API_BASE = process.env.REACT_APP_API_BASE;
 
+function computeSummary(report: ExtractedReport): Summary {
+  const totalGoals = Array.isArray(report.goals) ? report.goals.length : 0;
+  const totalBMPs = Array.isArray(report.bmps) ? report.bmps.length : 0;
+
+  // derive completionRate from goal.completionRate strings
+  // accepted forms: "85%", "Complete", "In progress", "Ongoing", "Not started", etc.
+  const toPct = (v: unknown): number | null => {
+    if (typeof v !== 'string') return null;
+    const s = v.trim().toLowerCase();
+
+    // explicit % like "75%" or "75 %"
+    const m = s.match(/(-?\d+(\.\d+)?)\s*%/);
+    if (m) {
+      const n = Number(m[1]);
+      if (Number.isFinite(n)) return Math.max(0, Math.min(100, n));
+    }
+
+    // common qualitative terms
+    if (/(^|\b)(complete|completed|done)\b/.test(s)) return 100;
+    if (/\b(in[-\s]?progress|ongoing|underway)\b/.test(s)) return 50;
+    if (/\b(not\s*started|pending|tbd)\b/.test(s)) return 0;
+
+    // numbers without % (treat 0–1 as 0–100 if clearly fraction)
+    const n2 = Number(s);
+    if (Number.isFinite(n2)) {
+      if (n2 <= 1 && n2 >= 0) return Math.round(n2 * 100);
+      if (n2 >= 0 && n2 <= 100) return Math.round(n2);
+    }
+    return null;
+  };
+
+  let sum = 0;
+  let count = 0;
+  if (Array.isArray(report.goals)) {
+    for (const g of report.goals) {
+      const v = toPct(g.completionRate);
+      if (v !== null) {
+        sum += v;
+        count++;
+      }
+    }
+  }
+  const completionRate = count > 0 ? Math.round(sum / count) : 0;
+
+  return {
+    totalGoals,
+    totalBMPs,
+    completionRate,
+  } as Summary;
+}
+
 // Expanded keys list (adapter names on the right side of the switch)
 const keys = [
   'identity',
@@ -53,7 +104,6 @@ function PDFReport() {
         await Promise.all(
           keys.map(async (key) => {
             setCurrentStep(key);
-
             try {
               const res = await axios.post(
                 `${API_BASE}/ask`,
@@ -105,7 +155,7 @@ function PDFReport() {
             }
           })
         );
-
+        draft.summary = computeSummary(draft);
         draft.isLoaded = true;
         DataService.setData(draft.id, draft);
         setReport(draft);
