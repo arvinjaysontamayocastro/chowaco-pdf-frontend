@@ -10,43 +10,46 @@ import {
   ImplementationActivity,
   MonitoringMetric,
   OutreachActivity,
+  Pollutant,
+  ReportIdentity,
   Summary,
 } from '../types/types';
 import DataService from '../services/data.service';
 
 const API_BASE = process.env.REACT_APP_API_BASE;
 
+// Expanded keys list (adapter names on the right side of the switch)
 const keys = [
+  'identity',
+  'pollutants',
   'goals',
   'bmps',
-  'implementation',
-  'monitoring',
-  'outreach',
+  'implementation', // -> implementationActivities
+  'monitoring', // -> monitoringMetrics
+  'outreach', // -> outreachActivities
   'geographicAreas',
-  'summary',
+  // 'summary',  we'll use computation here
 ] as const;
 
+type AskKey = (typeof keys)[number];
+
 function PDFReport() {
-  const initialReport: ExtractedReport = useLoaderData();
-  const [report, setReport] = useState<ExtractedReport>(initialReport);
+  const initialReport = useLoaderData() as ExtractedReport | null;
+  const [report, setReport] = useState<ExtractedReport | null>(initialReport);
   const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<AskKey | null>(null);
   const [loading, setLoading] = useState(!initialReport?.isLoaded);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    // Only fetch if report exists and is not loaded
-    if (!report) return;
+    if (!report || report.isLoaded) return;
 
-    if (report.isLoaded) {
-      return;
-    }
     const fetchData = async () => {
       try {
         const total = keys.length;
         let completed = 0;
+        const draft: ExtractedReport = { ...report };
 
-        // Fetch all keys in parallel
         await Promise.all(
           keys.map(async (key) => {
             setCurrentStep(key);
@@ -59,33 +62,43 @@ function PDFReport() {
               );
 
               const parsed = JSON.parse(res.data.answer);
+
               switch (key) {
+                case 'identity':
+                  draft.identity =
+                    (parsed[key] as ReportIdentity) ?? draft.identity;
+                  break;
+                case 'pollutants':
+                  draft.pollutants = (parsed[key] as Pollutant[]) ?? [];
+                  break;
                 case 'goals':
-                  report.goals = parsed[key] as Goal[];
+                  draft.goals = (parsed[key] as Goal[]) ?? [];
                   break;
                 case 'bmps':
-                  report.bmps = parsed[key] as BMP[];
+                  draft.bmps = (parsed[key] as BMP[]) ?? [];
                   break;
                 case 'implementation':
-                  report.implementationActivities = parsed[
-                    key
-                  ] as ImplementationActivity[];
+                  draft.implementationActivities =
+                    (parsed[key] as ImplementationActivity[]) ?? [];
                   break;
                 case 'monitoring':
-                  report.monitoringMetrics = parsed[key] as MonitoringMetric[];
+                  draft.monitoringMetrics =
+                    (parsed[key] as MonitoringMetric[]) ?? [];
                   break;
                 case 'outreach':
-                  report.outreachActivities = parsed[key] as OutreachActivity[];
+                  draft.outreachActivities =
+                    (parsed[key] as OutreachActivity[]) ?? [];
                   break;
                 case 'geographicAreas':
-                  report.geographicAreas = parsed[key] as GeographicArea[];
+                  draft.geographicAreas =
+                    (parsed[key] as GeographicArea[]) ?? [];
                   break;
-                case 'summary':
-                  report.summary = parsed[key] as Summary;
-                  break;
+                // case 'summary':
+                //   draft.summary = (parsed[key] as Summary) ?? draft.summary;
+                //   break;
               }
-            } catch (err) {
-              // console.error(`Failed to fetch key: ${key}`, err);
+            } catch (_err) {
+              // swallow per-key errors to keep the batch going
             } finally {
               completed++;
               setProgress(Math.round((completed / total) * 100));
@@ -93,31 +106,30 @@ function PDFReport() {
           })
         );
 
-        // Mark as loaded & save to DataService
-        report.isLoaded = true;
-        DataService.setData(report.id, report);
-        setReport({ ...report });
+        draft.isLoaded = true;
+        DataService.setData(draft.id, draft);
+        setReport(draft);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  });
+  }, [report]);
 
   return (
     <main className={classes.main}>
       <form className={classes.form}>
-        {loading ? (
+        {loading || !report ? (
           <>
             <h1>PDF Report</h1>
-            <h2>Building Structured Data for {report?.name}</h2>
+            <h2>Building Structured Data for {report?.name ?? '...'}</h2>
             <p>Extracting: {currentStep || 'Starting...'}</p>
             <div className={classes.progressBar}>
               <div
                 className={classes.progress}
                 style={{ width: `${progress}%` }}
-              ></div>
+              />
             </div>
           </>
         ) : (
@@ -126,17 +138,26 @@ function PDFReport() {
             <h2>Structured Data</h2>
             <div className={classes.structured}>
               <pre
-                style={{ background: '#f0f0f0', padding: '1rem' }}
                 className={classes.pre}
+                style={{ background: '#f0f0f0', padding: '1rem' }}
               >
                 {JSON.stringify(
                   {
+                    identity: report.identity,
+                    geographicAreas: report.geographicAreas,
+                    landUse: report.landUse,
+                    impairments: report.impairments,
+                    pollutants: report.pollutants,
+                    requiredReductions: report.requiredReductions,
                     goals: report.goals,
                     bmps: report.bmps,
                     implementation: report.implementationActivities,
                     monitoring: report.monitoringMetrics,
                     outreach: report.outreachActivities,
-                    geographicAreas: report.geographicAreas,
+                    funding: report.funding,
+                    milestones: report.milestones,
+                    stakeholders: report.stakeholders,
+                    figures: report.figures,
                     summary: report.summary,
                   },
                   null,
@@ -156,10 +177,6 @@ export default PDFReport;
 export async function loader({ params }: LoaderFunctionArgs) {
   const id = params.id;
   if (!id) return null;
-
   const report = DataService.getData(id);
-  // console.log('report', report);
-
-  // Always return whatever we have in DataService
   return report || null;
 }

@@ -1,55 +1,156 @@
-export type Goal = {
-  id: number; // Identifier for the goal \n
-  description: string; // Description of the goal \n
-  completionRate: string; // Completion rate of the goal \n
-};
+export interface ReportIdentity {
+  huc: string;
+  mwsId?: string;
+  basinGroup?: string;
+  subbasin?: string;
+  planYear?: number;
+  planType?: string;
+}
 
-export type BMP = {
-  // From Cost Estimate table \n
-  name: string; // Name of the BMP or Practice Name \n
-  sizeAmount: number; // Amount or size indicator for the BMP or units \n
-  sizeUnits: string; // Unit of size (e.g., "each", "tns", "ac", "ft", "cuyd", "cu yd") \n
-  estimatedCost: number; // Estimated cost for the BMP \n
-  estimatedCurrency: string; // Currency of the estimated cost \n
-};
+export interface GeographicArea {
+  name: string;
+  size: number;
+  huc?: string;
+  ecoregionLevel3?: string;
+  ecoregionLevel4?: string;
+  county?: string;
+  centroid?: { lat: number; lng: number };
+  areaUnits?: string;
+}
 
-export type ImplementationActivity = {
-  id: number; // Identifier for the implementation activity \n
-  description: string; // Description of the activity \n
-  timeline: string; // Proposed timeline for the activity \n
-};
+export interface Impairment {
+  parameter: string;
+  status: string;
+  source?: string;
+}
 
-export type MonitoringMetric = {
-  parameter: string; // The water quality parameter to be monitored \n
-  threshold: string; // The compliance threshold \n
-};
+export interface Pollutant {
+  name: string;
+  currentLoad?: number | string;
+  targetLoad?: number | string;
+  unit?: string;
+}
 
-export type OutreachActivity = {
-  id: number; // Identifier for the outreach activity \n
-  description: string; // Description of the activity \n
-  intendedAudience: string; // The audience for the outreach activity \n
-};
+export interface RequiredReduction {
+  pollutant: string;
+  percent: number | string;
+  rationale?: string;
+}
 
-export type GeographicArea = {
-  name: string; // Name of the geographic area \n
-  size: number; // Size of the area in acres or relevant units \n
-};
+export interface Goal {
+  id: number;
+  description: string;
+  completionRate: string;
+  category?: string;
+  targetDate?: string;
+  relatedPollutants?: string[];
+  successMetrics?: string[];
+}
 
-export type Summary = {
-  totalGoals: number; // Total number of goals identified in the watershed plan \n
-  totalBMPs: number; // Total number of BMPs proposed \n
-  completionRate: number; // Estimated completion rate of projects as a percentage \n
-};
+export interface BMP {
+  name: string;
+  sizeAmount: number;
+  sizeUnits: string;
+  estimatedCost: number;
+  estimatedCurrency: string;
+  bmptype?: string;
+  location?: { lat: number; lng: number } | string;
+  expectedLoadReduction?: { pollutant: string; amount: number; unit: string }[];
+  unitCost?: number;
+  lifecycleYears?: number;
+  oAndM?: string;
+}
 
-export type ExtractedReport = {
+export interface ImplementationActivity {
+  id: number;
+  description: string;
+  timeline: string;
+  phase?: string;
+  start?: string;
+  end?: string;
+  responsibleParties?: string[];
+  dependencies?: number[];
+}
+
+export interface MonitoringMetric {
+  parameter: string;
+  threshold: string;
+  method?: string;
+  frequency?: string;
+  location?: { lat: number; lng: number } | string;
+  baseline?: number;
+  target?: number;
+  unit?: string;
+}
+
+export interface OutreachActivity {
+  id: number;
+  description: string;
+  intendedAudience: string;
+  date?: string;
+  location?: string;
+  budget?: number;
+  materials?: string[];
+  partners?: string[];
+}
+
+export interface FundingItem {
+  source: string;
+  program?: string;
+  amount?: number;
+  fiscalYear?: number;
+  matchPercent?: number;
+}
+
+export interface FundingPlan {
+  items: FundingItem[];
+  totalEstimatedCost?: number;
+}
+
+export interface Milestone {
+  id: string;
+  description: string;
+  due: string;
+  relatedGoalIds?: number[];
+}
+
+export interface Stakeholder {
+  name: string;
+  role?: string;
+  contact?: string;
+}
+
+export interface Figure {
+  title: string;
+  url: string;
+  caption?: string;
+  page?: number;
+}
+
+export interface Summary {
+  totalGoals: number;
+  totalBMPs: number;
+  completionRate: number | null;
+}
+
+export interface ExtractedReport {
   id: string;
   isLoaded: boolean;
   name: string;
+  identity?: ReportIdentity;
+  geographicAreas: GeographicArea[];
+  landUse?: LandUseBreakdown[];
+  impairments?: Impairment[];
+  pollutants?: Pollutant[];
+  requiredReductions?: RequiredReduction[];
   goals: Goal[];
   bmps: BMP[];
-  implementationActivities: ImplementationActivity[];
+  implementationActivities?: ImplementationActivity[];
   monitoringMetrics: MonitoringMetric[];
-  outreachActivities: OutreachActivity[];
-  geographicAreas: GeographicArea[];
+  outreachActivities?: OutreachActivity[];
+  funding?: FundingPlan;
+  milestones?: Milestone[];
+  stakeholders?: Stakeholder[];
+  figures?: Figure[];
   summary: Summary;
-};
+}
