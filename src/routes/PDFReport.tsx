@@ -88,9 +88,9 @@ const keys = [
   'pollutants',
   'goals',
   'bmps',
-  'implementation', // -> implementationActivities
-  'monitoring', // -> monitoringMetrics
-  'outreach', // -> outreachActivities
+  'implementationActivities', // -> implementationActivities
+  'monitoringMetrics', // -> monitoringMetrics
+  'outreachActivities', // -> outreachActivities
   'geographicAreas',
 ] as const;
 
@@ -167,17 +167,17 @@ function PDFReport() {
                   ? (parsed as ExtractedReport['bmps'])
                   : draft.bmps ?? [];
                 break;
-              case 'implementation':
+              case 'implementationActivities':
                 draft.implementationActivities = Array.isArray(parsed)
                   ? (parsed as ExtractedReport['implementationActivities'])
                   : draft.implementationActivities ?? [];
                 break;
-              case 'monitoring':
+              case 'monitoringMetrics':
                 draft.monitoringMetrics = Array.isArray(parsed)
                   ? (parsed as ExtractedReport['monitoringMetrics'])
                   : draft.monitoringMetrics ?? [];
                 break;
-              case 'outreach':
+              case 'outreachActivities':
                 draft.outreachActivities = Array.isArray(parsed)
                   ? (parsed as ExtractedReport['outreachActivities'])
                   : draft.outreachActivities ?? [];
@@ -255,9 +255,9 @@ function PDFReport() {
                     ),
                     goals: report.goals,
                     bmps: report.bmps,
-                    implementation: report.implementationActivities,
-                    monitoring: report.monitoringMetrics,
-                    outreach: report.outreachActivities,
+                    implementationActivities: report.implementationActivities,
+                    monitoringMetrics: report.monitoringMetrics,
+                    outreachActivities: report.outreachActivities,
                     funding: getProp<unknown>(extra, 'funding'),
                     milestones: getProp<unknown>(extra, 'milestones'),
                     stakeholders: getProp<unknown>(extra, 'stakeholders'),
