@@ -8,13 +8,13 @@ import DataService from '../services/data.service';
 function parseStrict(answer: string, key: string) {
   try {
     const obj = JSON.parse(answer);
-    const val = (obj && obj[key]) ?? null;
+    const val = (obj && (obj as Record<string, unknown>)[key]) ?? null;
     if (val == null) {
       // console.debug(`[ask:${key}] key missing in JSON`, { obj }); // Dev-only
       return null;
     }
     return val;
-  } catch (e) {
+  } catch {
     // console.debug(`[ask:${key}] JSON.parse failed`, { answer, error: e }); // Dev-only
     return null;
   }
@@ -55,7 +55,8 @@ function computeSummary(report: ExtractedReport): Summary {
   let count = 0;
   if (Array.isArray(report.goals)) {
     for (const g of report.goals) {
-      const v = toPct(g.completionRate);
+      // If your Goal type doesn't always have completionRate, guard is fine:
+      const v = toPct((g as any)?.completionRate);
       if (v !== null) {
         sum += v;
         count++;
@@ -93,45 +94,104 @@ function PDFReport() {
   const [currentStep, setCurrentStep] = useState<AskKey | null>(null);
   const [loading, setLoading] = useState(!initialReport?.isLoaded);
 
-  const sleep = (ms: number) =>
+  const wait = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
+  const ASK_DELAY_MS = 1000; // set 500 or 1000 as you prefer
+  const ASK_TIMEOUT_MS = 20000; // 20s hard timeout per /ask
+
+  async function askWithTimeout(guid: string, key: AskKey) {
+    const controller = new AbortController();
+    const timer = setTimeout(
+      () => controller.abort(`Timeout: ${key}`),
+      ASK_TIMEOUT_MS
+    );
+    try {
+      const res = await api.post(
+        '/ask',
+        { guid, key },
+        {
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+        }
+      );
+      const parsed = parseStrict(res.data?.answer ?? '', key);
+      return parsed ?? null;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!report || report.isLoaded) return;
+    if (!report || (report as any).isLoaded) return;
 
     const fetchData = async () => {
       try {
         const total = keys.length;
         let completed = 0;
-        const draft: ExtractedReport = { ...report };
+        const draft: ExtractedReport = { ...(report as any) };
 
-        await Promise.all(
-          keys.map(async (key) => {
-            setCurrentStep(key);
-            try {
-              const res = await api.post(
-                '/ask',
-                { guid: report.id, key },
-                { headers: { 'Content-Type': 'application/json' } }
-              );
-              const parsed = parseStrict(res.data?.answer ?? '', key);
-              // arrays vs object handling:
-              if (Array.isArray(parsed)) return parsed;
-              if (parsed && typeof parsed === 'object') return parsed;
-              return Array.isArray(parsed) ? parsed : parsed ?? [];
-            } catch (_err) {
-              // swallow per-key errors to keep the batch going
-            } finally {
-              completed++;
-              setProgress(Math.round((completed / total) * 100));
-              // allow backend to finish processing before first ask
-              await sleep(1000);
+        for (const key of keys) {
+          setCurrentStep(key);
+          try {
+            const parsed = await askWithTimeout(draft.id, key);
+
+            switch (key) {
+              case 'identity':
+                draft.identity =
+                  (parsed as ExtractedReport['identity']) ?? draft.identity;
+                break;
+              case 'pollutants':
+                draft.pollutants = Array.isArray(parsed)
+                  ? (parsed as ExtractedReport['pollutants'])
+                  : draft.pollutants ?? [];
+                break;
+              case 'goals':
+                draft.goals = Array.isArray(parsed)
+                  ? (parsed as ExtractedReport['goals'])
+                  : draft.goals ?? [];
+                break;
+              case 'bmps':
+                draft.bmps = Array.isArray(parsed)
+                  ? (parsed as ExtractedReport['bmps'])
+                  : draft.bmps ?? [];
+                break;
+              case 'implementation':
+                draft.implementationActivities = Array.isArray(parsed)
+                  ? (parsed as ExtractedReport['implementationActivities'])
+                  : draft.implementationActivities ?? [];
+                break;
+              case 'monitoring':
+                draft.monitoringMetrics = Array.isArray(parsed)
+                  ? (parsed as ExtractedReport['monitoringMetrics'])
+                  : draft.monitoringMetrics ?? [];
+                break;
+              case 'outreach':
+                draft.outreachActivities = Array.isArray(parsed)
+                  ? (parsed as ExtractedReport['outreachActivities'])
+                  : draft.outreachActivities ?? [];
+                break;
+              case 'geographicAreas':
+                draft.geographicAreas = Array.isArray(parsed)
+                  ? (parsed as ExtractedReport['geographicAreas'])
+                  : draft.geographicAreas ?? [];
+                break;
             }
-          })
-        );
+          } catch (err: unknown) {
+            // swallow per-key errors/timeouts to keep the batch going
+            if (process.env.NODE_ENV !== 'production') {
+              // eslint-disable-next-line no-console
+              console.debug(`[ask:${key}] failed`, err);
+            }
+          } finally {
+            completed++;
+            setProgress(Math.round((completed / total) * 100));
+          }
+          await wait(ASK_DELAY_MS);
+        }
         draft.summary = computeSummary(draft);
-        draft.isLoaded = true;
+        (draft as any).isLoaded = true;
+
         DataService.setData(draft.id, draft);
         setReport(draft);
       } finally {
@@ -170,19 +230,19 @@ function PDFReport() {
                   {
                     identity: report.identity,
                     geographicAreas: report.geographicAreas,
-                    landUse: report.landUse,
-                    impairments: report.impairments,
+                    landUse: (report as any).landUse,
+                    impairments: (report as any).impairments,
                     pollutants: report.pollutants,
-                    requiredReductions: report.requiredReductions,
+                    requiredReductions: (report as any).requiredReductions,
                     goals: report.goals,
                     bmps: report.bmps,
                     implementation: report.implementationActivities,
                     monitoring: report.monitoringMetrics,
                     outreach: report.outreachActivities,
-                    funding: report.funding,
-                    milestones: report.milestones,
-                    stakeholders: report.stakeholders,
-                    figures: report.figures,
+                    funding: (report as any).funding,
+                    milestones: (report as any).milestones,
+                    stakeholders: (report as any).stakeholders,
+                    figures: (report as any).figures,
                     summary: report.summary,
                   },
                   null,
