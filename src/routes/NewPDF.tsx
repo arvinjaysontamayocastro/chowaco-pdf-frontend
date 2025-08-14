@@ -69,14 +69,27 @@ function NewPDF() {
       let msg = 'Unknown error';
 
       if (axios.isAxiosError(err)) {
-        // Prefer server-provided message if present
-        msg = (err.response?.data as any)?.error ?? err.message;
+        const data = err.response?.data;
+
+        if (typeof data === 'string') {
+          msg = data;
+        } else if (data && typeof data === 'object') {
+          const rec = data as Record<string, unknown>;
+          const fromError = rec.error;
+          const fromMessage = rec.message;
+
+          if (typeof fromError === 'string') msg = fromError;
+          else if (typeof fromMessage === 'string') msg = fromMessage;
+          else msg = err.message;
+        } else {
+          msg = err.message;
+        }
       } else if (err instanceof Error) {
         msg = err.message;
       } else if (typeof err === 'string') {
         msg = err;
       }
-      // eslint-disable-next-line no-console
+
       console.error('Upload PDF failed', err);
       alert(`Upload failed: ${msg}`);
     } finally {

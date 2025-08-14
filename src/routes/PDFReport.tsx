@@ -7,62 +7,72 @@ import DataService from '../services/data.service';
 
 function parseStrict(answer: string, key: string) {
   try {
-    const obj = JSON.parse(answer);
-    const val = (obj && (obj as Record<string, unknown>)[key]) ?? null;
-    if (val == null) {
-      // console.debug(`[ask:${key}] key missing in JSON`, { obj }); // Dev-only
-      return null;
+    const obj = JSON.parse(answer) as unknown;
+    if (obj && typeof obj === 'object') {
+      const val = (obj as Record<string, unknown>)[key];
+      return typeof val === 'undefined' ? null : val;
     }
-    return val;
+    return null;
   } catch {
-    // console.debug(`[ask:${key}] JSON.parse failed`, { answer, error: e }); // Dev-only
     return null;
   }
+}
+
+// safe getter for optional/unknown extra fields
+function getProp<T>(obj: unknown, key: string): T | undefined {
+  if (
+    obj &&
+    typeof obj === 'object' &&
+    key in (obj as Record<string, unknown>)
+  ) {
+    return (obj as Record<string, unknown>)[key] as T;
+  }
+  return undefined;
+}
+
+// type guard for goal objects that might include completionRate
+function hasCompletionRate(x: unknown): x is { completionRate?: unknown } {
+  return typeof x === 'object' && x !== null && 'completionRate' in x;
 }
 
 function computeSummary(report: ExtractedReport): Summary {
   const totalGoals = Array.isArray(report.goals) ? report.goals.length : 0;
   const totalBMPs = Array.isArray(report.bmps) ? report.bmps.length : 0;
 
-  // derive completionRate from goal.completionRate strings
-  // accepted forms: "85%", "Complete", "In progress", "Ongoing", "Not started", etc.
   const toPct = (v: unknown): number | null => {
-    if (typeof v !== 'string') return null;
-    const s = v.trim().toLowerCase();
+    if (typeof v === 'string') {
+      const s = v.trim().toLowerCase();
 
-    // explicit % like "75%" or "75 %"
-    const m = s.match(/(-?\d+(\.\d+)?)\s*%/);
-    if (m) {
-      const n = Number(m[1]);
-      if (Number.isFinite(n)) return Math.max(0, Math.min(100, n));
-    }
+      const m = s.match(/(-?\d+(\.\d+)?)\s*%/);
+      if (m) {
+        const n = Number(m[1]);
+        if (Number.isFinite(n)) return Math.max(0, Math.min(100, n));
+      }
+      if (/(^|\b)(complete|completed|done)\b/.test(s)) return 100;
+      if (/\b(in[-\s]?progress|ongoing|underway)\b/.test(s)) return 50;
+      if (/\b(not\s*started|pending|tbd)\b/.test(s)) return 0;
 
-    // common qualitative terms
-    if (/(^|\b)(complete|completed|done)\b/.test(s)) return 100;
-    if (/\b(in[-\s]?progress|ongoing|underway)\b/.test(s)) return 50;
-    if (/\b(not\s*started|pending|tbd)\b/.test(s)) return 0;
-
-    // numbers without % (treat 0–1 as 0–100 if clearly fraction)
-    const n2 = Number(s);
-    if (Number.isFinite(n2)) {
-      if (n2 <= 1 && n2 >= 0) return Math.round(n2 * 100);
-      if (n2 >= 0 && n2 <= 100) return Math.round(n2);
+      const n2 = Number(s);
+      if (Number.isFinite(n2)) {
+        if (n2 <= 1 && n2 >= 0) return Math.round(n2 * 100);
+        if (n2 >= 0 && n2 <= 100) return Math.round(n2);
+      }
     }
     return null;
   };
 
   let sum = 0;
   let count = 0;
-  if (Array.isArray(report.goals)) {
-    for (const g of report.goals) {
-      // If your Goal type doesn't always have completionRate, guard is fine:
-      const v = toPct((g as any)?.completionRate);
-      if (v !== null) {
-        sum += v;
-        count++;
-      }
+  const goals = Array.isArray(report.goals) ? report.goals : [];
+  for (const g of goals as ReadonlyArray<unknown>) {
+    const cr = hasCompletionRate(g) ? g.completionRate : undefined;
+    const v = toPct(cr);
+    if (v !== null) {
+      sum += v;
+      count++;
     }
   }
+
   const completionRate = count > 0 ? Math.round(sum / count) : 0;
 
   return {
@@ -82,7 +92,6 @@ const keys = [
   'monitoring', // -> monitoringMetrics
   'outreach', // -> outreachActivities
   'geographicAreas',
-  // 'summary',  we'll use computation here
 ] as const;
 
 type AskKey = (typeof keys)[number];
@@ -94,10 +103,11 @@ function PDFReport() {
   const [currentStep, setCurrentStep] = useState<AskKey | null>(null);
   const [loading, setLoading] = useState(!initialReport?.isLoaded);
 
+  // helpers
   const wait = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
   const ASK_DELAY_MS = 1000; // set 500 or 1000 as you prefer
-  const ASK_TIMEOUT_MS = 20000; // 20s hard timeout per /ask
+  const ASK_TIMEOUT_MS = 20000; // 20s per request
 
   async function askWithTimeout(guid: string, key: AskKey) {
     const controller = new AbortController();
@@ -123,19 +133,20 @@ function PDFReport() {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!report || (report as any).isLoaded) return;
+    if (!report || report.isLoaded) return;
 
     const fetchData = async () => {
       try {
         const total = keys.length;
         let completed = 0;
-        const draft: ExtractedReport = { ...(report as any) };
+        const draft: ExtractedReport = { ...report };
 
         for (const key of keys) {
           setCurrentStep(key);
           try {
             const parsed = await askWithTimeout(draft.id, key);
 
+            // assign parsed value to the correct field, with no `any`
             switch (key) {
               case 'identity':
                 draft.identity =
@@ -177,8 +188,8 @@ function PDFReport() {
                   : draft.geographicAreas ?? [];
                 break;
             }
-          } catch (err: unknown) {
-            // swallow per-key errors/timeouts to keep the batch going
+          } catch (err) {
+            // continue on timeout/failure (no `any` used)
             if (process.env.NODE_ENV !== 'production') {
               // eslint-disable-next-line no-console
               console.debug(`[ask:${key}] failed`, err);
@@ -187,10 +198,12 @@ function PDFReport() {
             completed++;
             setProgress(Math.round((completed / total) * 100));
           }
+
           await wait(ASK_DELAY_MS);
         }
+
         draft.summary = computeSummary(draft);
-        (draft as any).isLoaded = true;
+        draft.isLoaded = true;
 
         DataService.setData(draft.id, draft);
         setReport(draft);
@@ -201,6 +214,9 @@ function PDFReport() {
 
     fetchData();
   }, [report]);
+
+  // prepare extra (unknown) fields for preview without `any`
+  const extra = report as unknown;
 
   return (
     <main className={classes.main}>
@@ -230,19 +246,22 @@ function PDFReport() {
                   {
                     identity: report.identity,
                     geographicAreas: report.geographicAreas,
-                    landUse: (report as any).landUse,
-                    impairments: (report as any).impairments,
+                    landUse: getProp<unknown>(extra, 'landUse'),
+                    impairments: getProp<unknown>(extra, 'impairments'),
                     pollutants: report.pollutants,
-                    requiredReductions: (report as any).requiredReductions,
+                    requiredReductions: getProp<unknown>(
+                      extra,
+                      'requiredReductions'
+                    ),
                     goals: report.goals,
                     bmps: report.bmps,
                     implementation: report.implementationActivities,
                     monitoring: report.monitoringMetrics,
                     outreach: report.outreachActivities,
-                    funding: (report as any).funding,
-                    milestones: (report as any).milestones,
-                    stakeholders: (report as any).stakeholders,
-                    figures: (report as any).figures,
+                    funding: getProp<unknown>(extra, 'funding'),
+                    milestones: getProp<unknown>(extra, 'milestones'),
+                    stakeholders: getProp<unknown>(extra, 'stakeholders'),
+                    figures: getProp<unknown>(extra, 'figures'),
                     summary: report.summary,
                   },
                   null,
