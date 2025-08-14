@@ -5,8 +5,6 @@ import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 import { ExtractedReport, Summary } from '../types/types';
 import DataService from '../services/data.service';
 
-const API_BASE = process.env.REACT_APP_API_BASE;
-
 function parseStrict(answer: string, key: string) {
   try {
     const obj = JSON.parse(answer);

@@ -6,6 +6,7 @@ import { ExtractedReport, Summary } from '../types/types';
 import KeyService from '../services/key.service';
 import DataService from '../services/data.service';
 import api from '../services/api';
+import axios from 'axios';
 
 function NewPDF() {
   const [pdf, setPdf] = useState<File | null>(null);
@@ -46,7 +47,7 @@ function NewPDF() {
       });
 
       // allow backend to finish processing before first ask
-      await sleep(500);
+      await sleep(1000);
 
       // seed minimal ExtractedReport shell (so page loads instantly)
       const seed: ExtractedReport = {
@@ -64,10 +65,20 @@ function NewPDF() {
       DataService.setData(_id, seed);
 
       navigate(`/${_id}`);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let msg = 'Unknown error';
+
+      if (axios.isAxiosError(err)) {
+        // Prefer server-provided message if present
+        msg = (err.response?.data as any)?.error ?? err.message;
+      } else if (err instanceof Error) {
+        msg = err.message;
+      } else if (typeof err === 'string') {
+        msg = err;
+      }
       // eslint-disable-next-line no-console
       console.error('Upload PDF failed', err);
-      alert(`Upload failed: ${err?.message || 'Unknown error'}`);
+      alert(`Upload failed: ${msg}`);
     } finally {
       setIsLoadingPDF(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
