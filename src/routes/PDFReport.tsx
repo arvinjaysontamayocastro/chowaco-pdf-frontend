@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import classes from './PDFReport.module.css';
 import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 import {
@@ -98,6 +98,16 @@ const keys = [
 ] as const;
 
 type AskKey = (typeof keys)[number];
+const keys = [
+  'identity',
+  'pollutants',
+  'goals',
+  'bmps',
+  'implementation',
+  'monitoring',
+  'outreach',
+  'geographicAreas',
+] as const;
 
 function PDFReport() {
   const initialReport = useLoaderData() as ExtractedReport | null;
@@ -120,45 +130,50 @@ function PDFReport() {
           keys.map(async (key) => {
             setCurrentStep(key);
             try {
-              const res = await axios.post(
-                `${API_BASE}/ask`,
+              const res = await api.post(
+                '/ask',
                 { guid: report.id, key },
                 { headers: { 'Content-Type': 'application/json' } }
               );
-              const arr = parseStrict(res.data.answer, key);
+              const parsed = parseStrict(res.data?.answer ?? '', key);
+              // arrays vs object handling:
+              if (Array.isArray(parsed)) return parsed;
+              if (parsed && typeof parsed === 'object') return parsed;
+              return Array.isArray(parsed) ? parsed : parsed ?? [];
+
               switch (key) {
                 case 'identity':
-                  draft.identity = arr as ReportIdentity;
+                  draft.identity = parsed as ReportIdentity;
                   break;
                 case 'pollutants':
-                  draft.pollutants = Array.isArray(arr)
-                    ? (arr as Pollutant[])
+                  draft.pollutants = Array.isArray(parsed)
+                    ? (parsed as Pollutant[])
                     : [];
                   break;
                 case 'goals':
-                  draft.goals = Array.isArray(arr) ? (arr as Goal[]) : [];
+                  draft.goals = Array.isArray(parsed) ? (parsed as Goal[]) : [];
                   break;
                 case 'bmps':
-                  draft.bmps = Array.isArray(arr) ? (arr as BMP[]) : [];
+                  draft.bmps = Array.isArray(parsed) ? (parsed as BMP[]) : [];
                   break;
                 case 'implementation':
-                  draft.implementationActivities = Array.isArray(arr)
-                    ? (arr as ImplementationActivity[])
+                  draft.implementationActivities = Array.isArray(parsed)
+                    ? (parsed as ImplementationActivity[])
                     : [];
                   break;
                 case 'monitoring':
-                  draft.monitoringMetrics = Array.isArray(arr)
-                    ? (arr as MonitoringMetric[])
+                  draft.monitoringMetrics = Array.isArray(parsed)
+                    ? (parsed as MonitoringMetric[])
                     : [];
                   break;
                 case 'outreach':
-                  draft.outreachActivities = Array.isArray(arr)
-                    ? (arr as OutreachActivity[])
+                  draft.outreachActivities = Array.isArray(parsed)
+                    ? (parsed as OutreachActivity[])
                     : [];
                   break;
                 case 'geographicAreas':
-                  draft.geographicAreas = Array.isArray(arr)
-                    ? (arr as GeographicArea[])
+                  draft.geographicAreas = Array.isArray(parsed)
+                    ? (parsed as GeographicArea[])
                     : [];
                   break;
               }

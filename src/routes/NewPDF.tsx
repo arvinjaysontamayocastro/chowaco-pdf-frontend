@@ -65,6 +65,7 @@ function NewPDF() {
 
       navigate(`/${_id}`);
     } catch (err: any) {
+      // eslint-disable-next-line no-console
       console.error('Upload PDF failed', err);
       alert(`Upload failed: ${err?.message || 'Unknown error'}`);
     } finally {
@@ -91,10 +92,14 @@ function NewPDF() {
         </div>
 
         <p className={classes.actions}>
-          {/* Optional manual trigger
-          <button type="button" onClick={() => pdf && uploadPdf(pdf)} disabled={isLoadingPDF || !pdf}>
+          {/* Optional manual trigger */}
+          <button
+            type="button"
+            onClick={() => pdf && uploadPdf(pdf)}
+            disabled={isLoadingPDF || !pdf}
+          >
             Upload PDF
-          </button> */}
+          </button>
         </p>
       </form>
     </main>
