@@ -89,8 +89,6 @@ function NewPDF() {
       } else if (typeof err === 'string') {
         msg = err;
       }
-
-      console.error('Upload PDF failed', err);
       alert(`Upload failed: ${msg}`);
     } finally {
       setIsLoadingPDF(false);
