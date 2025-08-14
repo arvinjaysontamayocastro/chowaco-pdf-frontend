@@ -1,124 +1,98 @@
-import { useState, ChangeEvent } from 'react';
-import axios from 'axios';
+// src/routes/NewPDF.tsx  (Production-safe)
+import { useState, ChangeEvent, useRef } from 'react';
 import classes from './NewPDF.module.css';
 import { useNavigate } from 'react-router-dom';
 import { ExtractedReport } from '../types/types';
 import KeyService from '../services/key.service';
 import DataService from '../services/data.service';
-const API_BASE = process.env.REACT_APP_API_BASE;
+import api from '../services/api';
 
 function NewPDF() {
-  let pdf;
+  const [pdf, setPdf] = useState<File | null>(null);
   const [pdfMessage, setPdfMessage] = useState(
     'Click here or drag your file in the box'
   );
   const [isLoadingPDF, setIsLoadingPDF] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const navigate = useNavigate();
 
   const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      pdf = e.target.files[0];
-      const pdfSize =
-        pdf.size / 1024 <= 1024
-          ? Number(pdf.size / 1024).toFixed(2) + 'KB'
-          : Number(pdf.size / 1024 / 1024).toFixed(2) + 'MB';
-      setPdfMessage(pdf.name + ', ' + pdfSize);
+    const file = e.target.files?.[0] ?? null;
+    setPdf(file);
+    if (file) {
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+      setPdfMessage(`${file.name}, ${sizeMb} MB`);
+      void uploadPdf(file); // auto-upload
     }
-    uploadPdf();
   };
-  const navigate = useNavigate();
 
-  const uploadPdf = async () => {
-    // if (!pdf || isLoadingPDF) return;
+  const uploadPdf = async (file: File) => {
+    if (!file || isLoadingPDF) return;
     setIsLoadingPDF(true);
-
-    const _id = KeyService.createGUID();
-
-    const formData = new FormData();
-    formData.append('pdf', pdf);
-    formData.append('guid', _id); // Add GUID so server gets req.body.guid
-
     try {
-      axios
-        .post(`${API_BASE}/upload`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        })
-        .then(() => {
-          setExtractedReportPre(_id, pdf.name);
-        })
-        .catch(() => {
-          setIsLoadingPDF(false);
-        });
-    } catch (err) {
-      alert('Failed to upload PDF.');
+      const _id = KeyService.createGUID();
+      const formData = new FormData();
+      formData.append('pdf', file);
+      formData.append('guid', _id);
+
+      // multipart upload
+      await api.post('/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        maxBodyLength: Infinity,
+      });
+
+      // allow backend to finish processing before first ask
+      await sleep(500);
+
+      // seed minimal ExtractedReport shell (so page loads instantly)
+      const seed: ExtractedReport = {
+        id: _id,
+        identity: { huc: '' },
+        pollutants: [],
+        goals: [],
+        bmps: [],
+        implementationActivities: [],
+        monitoringMetrics: [],
+        outreachActivities: [],
+        geographicAreas: [],
+        summary: { text: '' } as any, // your Summary type here
+      };
+      DataService.setData(_id, seed);
+
+      navigate(`/${_id}`);
+    } catch (err: any) {
+      console.error('Upload PDF failed', err);
+      alert(`Upload failed: ${err?.message || 'Unknown error'}`);
+    } finally {
       setIsLoadingPDF(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      setPdf(null);
     }
-  };
-  const setExtractedReportPre = async (id: string, pdfName: string) => {
-    // console.log("id", id);
-    // console.log("pdfName", pdfName);
-    const extractedReport: ExtractedReport = {
-      id: id,
-      isLoaded: false,
-      name: pdfName,
-      goals: [],
-      bmps: [],
-      implementationActivities: [],
-      monitoringMetrics: [],
-      outreachActivities: [],
-      geographicAreas: [],
-      summary: {
-        totalGoals: 0,
-        totalBMPs: 0,
-        completionRate: 0,
-      },
-    };
-    // console.log("extractedReport", extractedReport);
-    DataService.setData(id, extractedReport);
-    // console.log("redirecting to /" + id);
-    await sleep(1000);
-    navigate('/' + id);
   };
 
   return (
-    <main className={classes.main}>
-      {/* <div className={giantText}></div> */}
-      <form className={classes.form}>
-        {isLoadingPDF ? (
-          <div className={classes.loadingcontainer}>
-            <div className={classes.loading}>&nbsp;</div>
-          </div>
-        ) : null}
-        <div className={classes.titlecontainer}>
-          {isLoadingPDF ? (
-            <>
-              <h1>Your PDF is uploading...</h1>
-              <p>{pdfMessage}</p>
-            </>
-          ) : null}
-          {!isLoadingPDF ? (
-            <>
-              <h1>Insert PDF</h1>
-              <p>Click here or drag your file in the box</p>
-            </>
-          ) : null}
+    <main>
+      <form className={classes.form} onSubmit={(e) => e.preventDefault()}>
+        <div className={classes.control}>
+          <label htmlFor="pdf">PDF File</label>
+          <input
+            id="pdf"
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf"
+            onChange={handleFileChange}
+            disabled={isLoadingPDF}
+          />
+          <small>{pdfMessage}</small>
         </div>
-        {/* <FileUploadComponent name="file" required /> */}
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={handleFileChange}
-          className={classes.file}
-        />
+
         <p className={classes.actions}>
-          {/* <Link to=".." type="button">
-            Cancel
-          </Link> */}
-          {/* <button type="button" onClick={uploadPdf} disabled={isLoadingPDF}>
+          {/* Optional manual trigger
+          <button type="button" onClick={() => pdf && uploadPdf(pdf)} disabled={isLoadingPDF || !pdf}>
             Upload PDF
           </button> */}
         </p>
