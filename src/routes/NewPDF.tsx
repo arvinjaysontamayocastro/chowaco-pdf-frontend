@@ -2,7 +2,7 @@
 import { useState, ChangeEvent, useRef } from 'react';
 import classes from './NewPDF.module.css';
 import { useNavigate } from 'react-router-dom';
-import { ExtractedReport } from '../types/types';
+import { ExtractedReport, Summary } from '../types/types';
 import KeyService from '../services/key.service';
 import DataService from '../services/data.service';
 import api from '../services/api';
@@ -59,7 +59,7 @@ function NewPDF() {
         monitoringMetrics: [],
         outreachActivities: [],
         geographicAreas: [],
-        summary: { text: '' } as any, // your Summary type here
+        summary: { totalGoals: 0, totalBMPs: 0, completionRate: 0 } as Summary, // your Summary type here
       };
       DataService.setData(_id, seed);
 
