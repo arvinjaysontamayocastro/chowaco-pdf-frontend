@@ -98,16 +98,6 @@ const keys = [
 ] as const;
 
 type AskKey = (typeof keys)[number];
-const keys = [
-  'identity',
-  'pollutants',
-  'goals',
-  'bmps',
-  'implementation',
-  'monitoring',
-  'outreach',
-  'geographicAreas',
-] as const;
 
 function PDFReport() {
   const initialReport = useLoaderData() as ExtractedReport | null;
@@ -140,43 +130,6 @@ function PDFReport() {
               if (Array.isArray(parsed)) return parsed;
               if (parsed && typeof parsed === 'object') return parsed;
               return Array.isArray(parsed) ? parsed : parsed ?? [];
-
-              switch (key) {
-                case 'identity':
-                  draft.identity = parsed as ReportIdentity;
-                  break;
-                case 'pollutants':
-                  draft.pollutants = Array.isArray(parsed)
-                    ? (parsed as Pollutant[])
-                    : [];
-                  break;
-                case 'goals':
-                  draft.goals = Array.isArray(parsed) ? (parsed as Goal[]) : [];
-                  break;
-                case 'bmps':
-                  draft.bmps = Array.isArray(parsed) ? (parsed as BMP[]) : [];
-                  break;
-                case 'implementation':
-                  draft.implementationActivities = Array.isArray(parsed)
-                    ? (parsed as ImplementationActivity[])
-                    : [];
-                  break;
-                case 'monitoring':
-                  draft.monitoringMetrics = Array.isArray(parsed)
-                    ? (parsed as MonitoringMetric[])
-                    : [];
-                  break;
-                case 'outreach':
-                  draft.outreachActivities = Array.isArray(parsed)
-                    ? (parsed as OutreachActivity[])
-                    : [];
-                  break;
-                case 'geographicAreas':
-                  draft.geographicAreas = Array.isArray(parsed)
-                    ? (parsed as GeographicArea[])
-                    : [];
-                  break;
-              }
             } catch (_err) {
               // swallow per-key errors to keep the batch going
             } finally {
