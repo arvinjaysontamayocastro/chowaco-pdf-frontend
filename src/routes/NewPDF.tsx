@@ -98,30 +98,42 @@ function NewPDF() {
   };
 
   return (
-    <main>
-      <form className={classes.form} onSubmit={(e) => e.preventDefault()}>
-        <div className={classes.control}>
-          <label htmlFor="pdf">PDF File</label>
-          <input
-            id="pdf"
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf"
-            onChange={handleFileChange}
-            disabled={isLoadingPDF}
-          />
-          <small>{pdfMessage}</small>
+    <main className={classes.main}>
+      {/* <div className={giantText}></div> */}
+      <form className={classes.form}>
+        {isLoadingPDF ? (
+          <div className={classes.loadingcontainer}>
+            <div className={classes.loading}>&nbsp;</div>
+          </div>
+        ) : null}
+        <div className={classes.titlecontainer}>
+          {isLoadingPDF ? (
+            <>
+              <h1>Your PDF is uploading...</h1>
+              <p>{pdfMessage}</p>
+            </>
+          ) : null}
+          {!isLoadingPDF ? (
+            <>
+              <h1>Insert PDF</h1>
+              <p>Click here or drag your file in the box</p>
+            </>
+          ) : null}
         </div>
-
+        {/* <FileUploadComponent name="file" required /> */}
+        <input
+          type="file"
+          accept="application/pdf"
+          onChange={handleFileChange}
+          className={classes.file}
+        />
         <p className={classes.actions}>
-          {/* Optional manual trigger */}
-          <button
-            type="button"
-            onClick={() => pdf && uploadPdf(pdf)}
-            disabled={isLoadingPDF || !pdf}
-          >
+          {/* <Link to=".." type="button">
+            Cancel
+          </Link> */}
+          {/* <button type="button" onClick={uploadPdf} disabled={isLoadingPDF}>
             Upload PDF
-          </button>
+          </button> */}
         </p>
       </form>
     </main>
