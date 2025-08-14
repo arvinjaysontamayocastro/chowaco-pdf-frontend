@@ -4,6 +4,7 @@ import classes from './PDFReport.module.css';
 import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 import { ExtractedReport, Summary } from '../types/types';
 import DataService from '../services/data.service';
+import { useJobStatus } from '../hooks/useJobStatus';
 
 function parseStrict(answer: string, key: string) {
   try {
@@ -97,6 +98,9 @@ const keys = [
 type AskKey = (typeof keys)[number];
 
 function PDFReport() {
+  const pdfReport = useLoaderData() as ExtractedReport;
+  const id = pdfReport.id;
+
   const initialReport = useLoaderData() as ExtractedReport | null;
   const [report, setReport] = useState<ExtractedReport | null>(initialReport);
   const [progress, setProgress] = useState(0);
@@ -108,6 +112,8 @@ function PDFReport() {
     new Promise((resolve) => setTimeout(resolve, ms));
   const ASK_DELAY_MS = 1000; // set 500 or 1000 as you prefer
   const ASK_TIMEOUT_MS = 20000; // 20s per request
+
+  const { status, error } = useJobStatus(id, 2500);
 
   async function askWithTimeout(guid: string, key: AskKey) {
     const controller = new AbortController();
@@ -226,11 +232,23 @@ function PDFReport() {
             <h1>PDF Report</h1>
             <h2>Building Structured Data for {report?.name ?? '...'}</h2>
             <p>Extracting: {currentStep || 'Starting...'}</p>
-            <div className={classes.progressBar}>
-              <div
-                className={classes.progress}
-                style={{ width: `${progress}%` }}
-              />
+            <div
+              className={classes.statusBar /* new class, see CSS note below */}
+            >
+              <div className={classes.progressBar}>
+                <div
+                  className={classes.progress}
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              {status !== 'ready' && status !== 'error' && (
+                <p>
+                  Processing… <strong>{progress}%</strong>
+                </p>
+              )}
+              {status === 'error' && (
+                <p>Error: {error ?? 'Processing failed'}</p>
+              )}
             </div>
           </>
         ) : (
