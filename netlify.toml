@@ -5,6 +5,7 @@
 [build.environment]
   NODE_VERSION = "18"
 
+# SPA fallback so deep links work
 [[redirects]]
   from = "/*"
   to = "/index.html"
