@@ -9,7 +9,7 @@ import api from '../services/api';
 import axios from 'axios';
 
 function NewPDF() {
-  const [pdf, setPdf] = useState<File | null>(null);
+  // const [pdf, setPdf] = useState<File | null>(null);
   const [pdfMessage, setPdfMessage] = useState(
     'Click here or drag your file in the box'
   );
@@ -93,7 +93,7 @@ function NewPDF() {
     } finally {
       setIsLoadingPDF(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      setPdf(null);
+      // setPdf(null);
     }
   };
 
