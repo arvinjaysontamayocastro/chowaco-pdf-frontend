@@ -15,7 +15,7 @@ function MainHeader() {
       <p>
         <Link to="/" className={classes.button}>
           {/* <MdPostAdd size={18} /> */}
-          Upload New PDF
+          Process New PDF
         </Link>
       </p>
     </header>
