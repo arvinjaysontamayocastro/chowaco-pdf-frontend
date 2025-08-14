@@ -13,7 +13,7 @@ function MainHeader() {
         </h1>
       </Link>
       <p>
-        <Link to="/upload-new-pdf" className={classes.button}>
+        <Link to="/" className={classes.button}>
           {/* <MdPostAdd size={18} /> */}
           Upload New PDF
         </Link>

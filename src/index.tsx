@@ -20,7 +20,6 @@ const router = createBrowserRouter([
         loader: postLoader,
         children: [
           { path: '/', element: <NewPDF /> }, //, action: NewPDFAction
-          { path: '/upload-new-pdf', element: <NewPDF /> }, //, action: NewPDFAction
           { path: '/:id', element: <PDFReport />, loader: pdfReportLoader },
         ],
       }, // our domain
