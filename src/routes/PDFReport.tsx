@@ -2,18 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../services/api';
 import classes from './PDFReport.module.css';
 import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
-import {
-  BMP,
-  ExtractedReport,
-  GeographicArea,
-  Goal,
-  ImplementationActivity,
-  MonitoringMetric,
-  OutreachActivity,
-  Pollutant,
-  ReportIdentity,
-  Summary,
-} from '../types/types';
+import { ExtractedReport, Summary } from '../types/types';
 import DataService from '../services/data.service';
 
 const API_BASE = process.env.REACT_APP_API_BASE;
@@ -106,6 +95,9 @@ function PDFReport() {
   const [currentStep, setCurrentStep] = useState<AskKey | null>(null);
   const [loading, setLoading] = useState(!initialReport?.isLoaded);
 
+  const sleep = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!report || report.isLoaded) return;
@@ -135,6 +127,8 @@ function PDFReport() {
             } finally {
               completed++;
               setProgress(Math.round((completed / total) * 100));
+              // allow backend to finish processing before first ask
+              await sleep(1000);
             }
           })
         );
