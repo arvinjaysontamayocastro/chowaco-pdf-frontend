@@ -9,7 +9,7 @@ import api from '../services/api';
 import axios from 'axios';
 
 function NewPDF() {
-  const [pdf, setPdf] = useState<File | null>(null);
+  // const [pdf, setPdf] = useState<File | null>(null);
   const [pdfMessage, setPdfMessage] = useState(
     'Click here or drag your file in the box'
   );
@@ -23,7 +23,7 @@ function NewPDF() {
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
-    setPdf(file);
+    // setPdf(file);
     if (file) {
       const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
       setPdfMessage(`${file.name}, ${sizeMb} MB`);
