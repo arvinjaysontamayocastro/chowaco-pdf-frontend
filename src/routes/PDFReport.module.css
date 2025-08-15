@@ -13,7 +13,21 @@
 .modal {
   min-width: 500px;
 }
-.form {
+
+.structuredData {
+  width: 400px;
+}
+
+.charts {
+  background-color: #ffffff;
+  margin-left: 24px;
+  box-sizing: border-box;
+  flex: 1;
+  max-width: 100%; /* Prevent it from being wider than parent */
+  overflow-x: auto; /* Scroll if content is wider */
+}
+
+.container {
   /* background-color: #6233b9; */
   background-color: #ffffff;
   padding: 1rem;
@@ -23,7 +37,7 @@
   border-top: solid 5px #cccccc;
 }
 
-.form .loading {
+.container.loading {
   display: block;
   position: relative;
   top: -20px;
@@ -40,15 +54,15 @@
   float: left;
 }
 
-.form label {
+.containerlabel {
   display: block;
   margin-bottom: 0.05rem;
   color: #eadbfb;
   font-weight: bold;
 }
 
-.form input,
-.form textarea {
+.containerinput,
+.containertextarea {
   display: block;
   width: 100%;
   box-sizing: border-box;
@@ -64,7 +78,7 @@
 .file {
 }
 
-.form .filecontainer {
+.container.filecontainer {
   height: 100%;
 }
 

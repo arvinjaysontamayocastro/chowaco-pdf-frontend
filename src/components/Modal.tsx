@@ -1,16 +1,32 @@
-import { useNavigate } from "react-router-dom";
+import React, { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
+import classes from './Charts.module.css';
 
-import classes from "./Charts.module.css";
+interface ModalProps {
+  children?: ReactNode;
+}
 
-function Charts({ children }: any) {
+function Modal({ children }: ModalProps) {
   const navigate = useNavigate();
+
   function closeHandler() {
-    navigate("..");
+    navigate('..');
   }
+
   return (
     <>
-      <div className={classes.backdrop} onClick={closeHandler} />
-      <dialog open className={classes.modal}>
+      <div
+        className={classes.backdrop}
+        onClick={closeHandler}
+        role="button"
+        aria-label="Close modal"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') closeHandler();
+          if (e.key === 'Escape') closeHandler();
+        }}
+      />
+      <dialog open className={classes.modal} aria-modal="true">
         {children}
       </dialog>
     </>

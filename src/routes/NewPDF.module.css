@@ -36,7 +36,7 @@
   /* text- */
   font-size: 100px;
   height: 0px;
-  padding-top: 300px;
+  padding-top: 222px;
   line-height: 0px;
   overflow: visible;
 }
@@ -53,7 +53,7 @@
 .form .loading {
   display: block;
   position: block;
-  height: 800px;
+  height: 555px;
   overflow: hidden;
   animation: loading 3s linear infinite;
   box-sizing: border-box;
@@ -86,7 +86,7 @@
 }
 
 .form .file {
-  height: 800px;
+  height: 555px;
   border: dashed 3px #091320;
   background-color: none;
   cursor: pointer;
@@ -159,6 +159,12 @@
   text-align: left;
 }
 
+.snowflakeContainer {
+}
+
+.snowflake {
+}
+
 @keyframes loading {
   from {
     left: 0%;
@@ -170,5 +176,37 @@
     left: 0;
     width: 100%;
     opacity: 0;
+  }
+}
+
+@media screen and (max-width: 1920px) {
+  /* STYLES HERE */
+  .form h1 {
+    /* text- */
+    font-size: 36px;
+    height: 0px;
+    padding-top: 222px;
+    line-height: 0px;
+    overflow: visible;
+  }
+  .form p {
+    /* text- */
+    font-size: 24px;
+  }
+}
+
+@media screen and (max-width: 758px) {
+  /* STYLES HERE */
+  .form h1 {
+    /* text- */
+    font-size: 18px;
+    height: 0px;
+    padding-top: 180px;
+    line-height: 0px;
+    overflow: visible;
+  }
+  .form p {
+    /* text- */
+    font-size: 11px;
   }
 }

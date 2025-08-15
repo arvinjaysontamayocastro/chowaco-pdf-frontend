@@ -5,6 +5,7 @@ import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 import { ExtractedReport, Summary } from '../types/types';
 import DataService from '../services/data.service';
 import { useJobStatus } from '../hooks/useJobStatus';
+import Charts from '../components/Charts';
 
 function parseStrict(answer: string, key: string) {
   try {
@@ -152,7 +153,6 @@ function PDFReport() {
           try {
             const parsed = await askWithTimeout(draft.id, key);
 
-            // assign parsed value to the correct field, with no `any`
             switch (key) {
               case 'identity':
                 draft.identity =
@@ -195,7 +195,6 @@ function PDFReport() {
                 break;
             }
           } catch (err) {
-            // continue on timeout/failure (no `any` used)
             if (process.env.NODE_ENV !== 'production') {
               // eslint-disable-next-line no-console
               console.debug(`[ask:${key}] failed`, err);
@@ -221,75 +220,83 @@ function PDFReport() {
     fetchData();
   }, [report]);
 
-  // prepare extra (unknown) fields for preview without `any`
   const extra = report as unknown;
 
   return (
     <main className={classes.main}>
-      <form className={classes.form}>
-        {loading || !report ? (
-          <>
-            <h1>PDF Report</h1>
-            <h2>Building Structured Data for {report?.name ?? '...'}</h2>
-            <p>Extracting: {currentStep || 'Starting...'}</p>
-            <div
-              className={classes.statusBar /* new class, see CSS note below */}
-            >
-              <div className={classes.progressBar}>
-                <div
-                  className={classes.progress}
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              {status !== 'ready' && status !== 'error' && (
-                <p>
-                  Processing… <strong>{progress}%</strong>
-                </p>
-              )}
-              {status === 'error' && (
-                <p>Error: {error ?? 'Processing failed'}</p>
-              )}
-            </div>
-          </>
-        ) : (
-          <>
-            <h1>PDF Report</h1>
-            <h2>Structured Data</h2>
-            <div className={classes.structured}>
-              <pre
-                className={classes.pre}
-                style={{ background: '#f0f0f0', padding: '1rem' }}
+      <div className={classes.structuredData}>
+        <div className={classes.container}>
+          {loading || !report ? (
+            <>
+              <h1>PDF Report</h1>
+              <h2>Building Structured Data for {report?.name ?? '...'}</h2>
+              <p>Extracting: {currentStep || 'Starting...'}</p>
+              <div
+                className={
+                  classes.statusBar /* new class, see CSS note below */
+                }
               >
-                {JSON.stringify(
-                  {
-                    identity: report.identity,
-                    geographicAreas: report.geographicAreas,
-                    landUse: getProp<unknown>(extra, 'landUse'),
-                    impairments: getProp<unknown>(extra, 'impairments'),
-                    pollutants: report.pollutants,
-                    requiredReductions: getProp<unknown>(
-                      extra,
-                      'requiredReductions'
-                    ),
-                    goals: report.goals,
-                    bmps: report.bmps,
-                    implementationActivities: report.implementationActivities,
-                    monitoringMetrics: report.monitoringMetrics,
-                    outreachActivities: report.outreachActivities,
-                    funding: getProp<unknown>(extra, 'funding'),
-                    milestones: getProp<unknown>(extra, 'milestones'),
-                    stakeholders: getProp<unknown>(extra, 'stakeholders'),
-                    figures: getProp<unknown>(extra, 'figures'),
-                    summary: report.summary,
-                  },
-                  null,
-                  2
+                <div className={classes.progressBar}>
+                  <div
+                    className={classes.progress}
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                {status !== 'ready' && status !== 'error' && (
+                  <p>
+                    Processing… <strong>{progress}%</strong>
+                  </p>
                 )}
-              </pre>
-            </div>
-          </>
-        )}
-      </form>
+                {status === 'error' && (
+                  <p>Error: {error ?? 'Processing failed'}</p>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <h1>PDF Report</h1>
+              <h2>Structured Data</h2>
+              <div className={classes.structured}>
+                <pre
+                  className={classes.pre}
+                  style={{ background: '#f0f0f0', padding: '1rem' }}
+                >
+                  {JSON.stringify(
+                    {
+                      identity: report.identity,
+                      geographicAreas: report.geographicAreas,
+                      landUse: getProp<unknown>(extra, 'landUse'),
+                      impairments: getProp<unknown>(extra, 'impairments'),
+                      pollutants: report.pollutants,
+                      requiredReductions: getProp<unknown>(
+                        extra,
+                        'requiredReductions'
+                      ),
+                      goals: report.goals,
+                      bmps: report.bmps,
+                      implementationActivities: report.implementationActivities,
+                      monitoringMetrics: report.monitoringMetrics,
+                      outreachActivities: report.outreachActivities,
+                      funding: getProp<unknown>(extra, 'funding'),
+                      milestones: getProp<unknown>(extra, 'milestones'),
+                      stakeholders: getProp<unknown>(extra, 'stakeholders'),
+                      figures: getProp<unknown>(extra, 'figures'),
+                      summary: report.summary,
+                    },
+                    null,
+                    2
+                  )}
+                </pre>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+      <div className={classes.charts}>
+        <div className={classes.container}>
+          <Charts data={report} />
+        </div>
+      </div>
     </main>
   );
 }

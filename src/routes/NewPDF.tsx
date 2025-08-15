@@ -99,6 +99,11 @@ function NewPDF() {
 
   return (
     <main className={classes.main}>
+      <div className={classes.snowflakeContainer}>
+        {new Array(16).fill('').map((_, index) => (
+          <div key={index} className={classes.snowflake}></div>
+        ))}
+      </div>
       {/* <div className={giantText}></div> */}
       <form className={classes.form}>
         {isLoadingPDF ? (

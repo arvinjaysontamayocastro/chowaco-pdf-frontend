@@ -1,7 +1,7 @@
-import classes from "./FileUploadComponent.module.css";
+import classes from './FileUploadComponent.module.css';
 
-import React, { useRef, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import React, { useRef, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
 
 // function FileUploadComponent() {
 //   const { getRootProps, getInputProps } = useDropzone({
@@ -29,7 +29,7 @@ import { useDropzone } from "react-dropzone";
 
 // export default FileUploadComponent;
 
-function FileUploadComponent(props: any) {
+function FileUploadComponent(props: FileUploadProps) {
   const { required, name } = props;
 
   const hiddenInputRef = useRef(null);
@@ -47,7 +47,7 @@ function FileUploadComponent(props: any) {
       }
     },
     accept: {
-      "application/pdf": [".pdf"],
+      'application/pdf': ['.pdf'],
     },
     maxFiles: 1,
   });
@@ -62,7 +62,7 @@ function FileUploadComponent(props: any) {
 
   return (
     <div className={classes.container}>
-      <div {...getRootProps({ className: "dropzone" })}>
+      <div {...getRootProps({ className: 'dropzone' })}>
         {/*
           Add a hidden file input 
           Best to use opacity 0, so that the required validation message will appear on form submission
@@ -81,7 +81,7 @@ function FileUploadComponent(props: any) {
         </button>
       </div>
       <aside>
-        <h4>{fileCount ? "File" : "No file yet"}</h4>
+        <h4>{fileCount ? 'File' : 'No file yet'}</h4>
         <ul>{files}</ul>
       </aside>
     </div>
