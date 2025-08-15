@@ -7,6 +7,7 @@ import KeyService from '../services/key.service';
 import DataService from '../services/data.service';
 import api from '../services/api';
 import axios from 'axios';
+import Snowfall from '../components/Snowfall';
 
 function NewPDF() {
   // const [pdf, setPdf] = useState<File | null>(null);
@@ -99,11 +100,8 @@ function NewPDF() {
 
   return (
     <main className={classes.main}>
-      <div className={classes.snowflakeContainer}>
-        {new Array(16).fill('').map((_, index) => (
-          <div key={index} className={classes.snowflake}></div>
-        ))}
-      </div>
+      {isLoadingPDF ? <Snowfall count={20} /> : null}
+
       {/* <div className={giantText}></div> */}
       <form className={classes.form}>
         {isLoadingPDF ? (
@@ -122,13 +120,14 @@ function NewPDF() {
             <>
               <h1>Insert PDF</h1>
               <p>Click here or drag your file in the box</p>
+              <p>before winter comes</p>
             </>
           ) : null}
         </div>
         {/* <FileUploadComponent name="file" required /> */}
         <input
           type="file"
-          accept="application/pdf"
+          accept=".pdf"
           onChange={handleFileChange}
           className={classes.file}
         />

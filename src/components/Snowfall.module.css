@@ -1,0 +1,65 @@
+.snowflakeContainer {
+  position: absolute; /* or fixed if you want it overlaying entire UI */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.snowflake {
+  position: absolute;
+  top: -10px;
+  background: #cccccc;
+  border-radius: 50%;
+  opacity: 0.8;
+  animation-name: fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+
+  display: inline-block;
+  /* The SVG uses stroke="currentColor" so this div's color controls it */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  /* Optional glow */
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.7));
+
+  /* Inline SVG as data URI (6-arm snowflake, stroked) */
+  background-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>\
+  <g stroke='currentColor' stroke-width='6' stroke-linecap='round' fill='none'>\
+    <!-- vertical -->\
+    <line x1='50' y1='5'  x2='50' y2='95'/>\
+    <!-- diag \\ -->\
+    <line x1='17' y1='25' x2='83' y2='75'/>\
+    <!-- diag // -->\
+    <line x1='83' y1='25' x2='17' y2='75'/>\
+    <!-- tips: small branches -->\
+    <line x1='50' y1='15' x2='43' y2='25'/>\
+    <line x1='50' y1='15' x2='57' y2='25'/>\
+    <line x1='50' y1='85' x2='43' y2='75'/>\
+    <line x1='50' y1='85' x2='57' y2='75'/>\
+    <line x1='25' y1='33' x2='18' y2='23'/>\
+    <line x1='25' y1='33' x2='35' y2='28'/>\
+    <line x1='75' y1='67' x2='65' y2='72'/>\
+    <line x1='75' y1='67' x2='82' y2='77'/>\
+    <line x1='75' y1='33' x2='82' y2='23'/>\
+    <line x1='75' y1='33' x2='65' y2='28'/>\
+    <line x1='25' y1='67' x2='35' y2='72'/>\
+    <line x1='25' y1='67' x2='18' y2='77'/>\
+  </g>\
+</svg>");
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(360deg);
+    opacity: 0;
+  }
+}

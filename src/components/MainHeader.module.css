@@ -65,3 +65,19 @@
     margin: 2rem 24px;
   }
 }
+
+@media screen and (max-width: 1080px) {
+  .logo {
+    font-size: 1.8rem;
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    background-image: linear-gradient(
+      to right,
+      rgb(250, 204, 21),
+      rgb(45, 212, 191)
+    );
+    background-clip: text;
+    color: rgba(0, 0, 0, 0);
+  }
+}
