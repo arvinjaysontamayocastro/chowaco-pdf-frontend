@@ -293,7 +293,7 @@ function PDFReport() {
         </div>
       </div>
       <div className={classes.charts}>
-        <div className={classes.container}>
+        <div className={classes.containerfull}>
           <Charts data={report} />
         </div>
       </div>

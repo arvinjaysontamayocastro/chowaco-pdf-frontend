@@ -59,3 +59,9 @@
 .button:hover {
   /* background-color: #8c6cf7; */
 }
+
+@media screen and (max-width: 1920px) {
+  .header {
+    margin: 2rem 24px;
+  }
+}

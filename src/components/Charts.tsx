@@ -21,6 +21,7 @@ type TabKey =
   | 'implementationActivities'
   | 'monitoringMetrics'
   | 'outreachActivities'
+  | 'geographicAreas'
   | 'geographicAreas';
 
 interface Goal {
@@ -51,7 +52,7 @@ interface ChartsProps {
     monitoringMetrics?: Record<string, unknown>[];
     outreachActivities?: Record<string, unknown>[];
     geographicAreas?: Record<string, unknown>[];
-    [k: string]: unknown; // ← was any
+    [k: string]: unknown;
   };
 }
 
@@ -75,7 +76,7 @@ export default function Charts({ data }: ChartsProps) {
     'geographicAreas',
   ];
 
-  const tabDefaults: Record<TabKey, 'cards' | 'table'> = {
+  const tabDefaults: Record<TabKey, 'cards' | 'list' | 'table'> = {
     summary: 'cards',
     goals: 'cards',
     bmps: 'cards',
@@ -87,7 +88,9 @@ export default function Charts({ data }: ChartsProps) {
   };
 
   const [activeTab, setActiveTab] = useState<TabKey>('summary');
-  const [view, setView] = useState<'cards' | 'table'>(tabDefaults['summary']);
+  const [view, setView] = useState<'cards' | 'list' | 'table'>(
+    tabDefaults['summary']
+  );
 
   const counts = useMemo(() => {
     const arrLen = (v: unknown) => (Array.isArray(v) ? v.length : 0);
@@ -128,6 +131,7 @@ export default function Charts({ data }: ChartsProps) {
         label: 'Geographic Areas',
         count: counts.geographicAreas,
       },
+      { key: 'all', label: 'All' },
     ],
     [counts]
   );
@@ -298,7 +302,7 @@ export default function Charts({ data }: ChartsProps) {
   };
 
   const renderCharts = () => {
-    if (activeTab === 'summary') {
+    if (activeTab === 'summary' || activeTab === 'all') {
       return (
         <>
           {renderGoalsChart()}
@@ -330,7 +334,7 @@ export default function Charts({ data }: ChartsProps) {
             aria-pressed={activeTab === tab.key}
           >
             {tab.label}
-            {tab.key !== 'summary' && (
+            {tab.key !== 'summary' && tab.key !== 'all' && (
               <span className={classes.badge}>{tab.count ?? 0}</span>
             )}
           </button>
@@ -342,9 +346,17 @@ export default function Charts({ data }: ChartsProps) {
           {/* Search input hook-up can go here when needed */}
           {activeTab !== 'summary' && !tableOnlyTabs.includes(activeTab) && (
             <button
-              onClick={() => setView(view === 'cards' ? 'table' : 'cards')}
+              onClick={() =>
+                setView(
+                  view === 'cards'
+                    ? 'list'
+                    : view === 'list'
+                    ? 'table'
+                    : 'cards'
+                )
+              }
             >
-              Switch to {view === 'cards' ? 'Table' : 'Cards'}
+              Switch to {view}
             </button>
           )}
         </div>
@@ -370,7 +382,7 @@ export default function Charts({ data }: ChartsProps) {
                   : classes.dataContainer
               }
             >
-              {view === 'cards' ? (
+              {view === 'cards' || view === 'list' ? (
                 <div className={classes.cardGrid}>
                   {activeDataArray.map(
                     (item: Record<string, unknown>, idx: number) => (

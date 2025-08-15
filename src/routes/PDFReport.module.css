@@ -36,6 +36,22 @@
   border: solid 1px #cccccc;
   border-top: solid 5px #cccccc;
 }
+.container h1 {
+  margin: 0;
+  text-align: left;
+}
+.container h2 {
+  margin: 0;
+  text-align: left;
+}
+.containerfull {
+  /* background-color: #6233b9; */
+  background-color: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
+  border: solid 1px #cccccc;
+  border-top: solid 5px #cccccc;
+}
 
 .container.loading {
   display: block;
@@ -128,9 +144,9 @@
 .actions a:hover {
 }
 .structured {
-  margin-top: 48px;
-  padding-top: 24px;
-  border-top: dashed 3px #cccccc;
+  /* margin-top: 48px; */
+  /* padding-top: 24px; */
+  /* border-top: dashed 3px #cccccc; */
 }
 .pre {
   max-height: 500px;
@@ -189,4 +205,10 @@
   font-size: 0.95rem;
   opacity: 0.9;
   height: 100px;
+}
+
+@media screen and (max-width: 1920px) {
+  .main {
+    margin: 2rem 24px;
+  }
 }
