@@ -110,7 +110,7 @@ const keys = [
 type AskKey = (typeof keys)[number];
 
 // --- Small gated poller to avoid infinite intervals in useJobStatus ---
-type JobStatusResult = { status: string; error?: string | null };
+type JobStatusResult = { status: string; error: string | null };
 
 function StatusWire({
   id,
@@ -118,7 +118,8 @@ function StatusWire({
   intervalMs = 2500,
 }: {
   id: string;
-  onUpdate: (s: { status: string; error: string | null }) => void;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onUpdate: (_payload: { status: string; error: string | null }) => void; // <- underscore
   intervalMs?: number;
 }) {
   const { status, error } = useJobStatus(id, intervalMs) as JobStatusResult;
