@@ -72,7 +72,7 @@
 }
 .form .loading {
   display: block;
-  position: block;
+  position: relative;
   height: 600px;
   overflow: hidden;
   animation: loading 3s linear infinite;
@@ -276,4 +276,80 @@
     /* text- */
     font-size: 11px;
   }
+}
+
+/* ===== Uploaded Reports styles (added) ===== */
+.reports {
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.reports h2 {
+  margin-bottom: 0.75rem;
+}
+
+.reportGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.card {
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge {
+  background: #facc15;
+  color: #2a2630;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  margin-left: 6px;
+}
+
+.meta {
+  font-size: 0.85rem;
+  color: #666666;
+}
+
+.cardActions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cardActions button {
+  flex: 1;
+  padding: 0.4rem;
+  border: none;
+  background: #2a2630;
+  color: #ffffff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cardActions button:hover {
+  background: #444444;
+}
+
+.muted {
+  color: #999999;
+  font-size: 0.85rem;
+  grid-column: 1 / -1;
+  text-align: center;
 }

@@ -212,3 +212,114 @@
     margin: 2rem 24px;
   }
 }
+
+/* --- Minimalist action buttons --- */
+.actionsRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid #dcdcdc;
+  background: #ffffff;
+  color: #222;
+  padding: 0.45rem 0.8rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) inset;
+}
+
+/* ghost style (unselected tab look) */
+.btnGhost {
+  background: #fafafa;
+  border-color: #e8e8e8;
+  color: #444;
+}
+
+/* active style (selected tab look) */
+.btnActive {
+  background: linear-gradient(to right, #facc15, #2dd4bf);
+  border-color: transparent;
+  color: #101010;
+  box-shadow: 0 6px 18px rgba(45, 212, 191, 0.25);
+}
+
+/* accent for Create Open Link */
+.btnAccent {
+  composes: btn;
+  background: #101010;
+  color: #fff;
+  border-color: #101010;
+}
+.btnAccent:hover {
+  background: #171717;
+}
+
+/* --- Open link card --- */
+.openLinkCard {
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  padding: 0.85rem;
+  background: #ffffff;
+  text-align: left;
+}
+.openLinkTitle {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.openLinkText {
+  user-select: text;
+  overflow-x: auto;
+  margin-top: 0.5rem;
+  background: #f8f8f8;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px dashed #e0e0e0;
+  font-size: 0.9rem;
+}
+
+/* --- Tree view styles --- */
+.treeNode {
+  margin-left: 0.4rem;
+}
+.treeSummary {
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.treeMeta {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+.treeChildren {
+  margin-left: 1rem;
+  border-left: 1px dashed #e5e7eb;
+  padding-left: 0.6rem;
+}
+.treeRow {
+  margin: 2px 0;
+}
+.treeKey {
+  color: #2563eb;
+  font-weight: 600;
+}
+.treePrimitive {
+  color: #111827;
+}

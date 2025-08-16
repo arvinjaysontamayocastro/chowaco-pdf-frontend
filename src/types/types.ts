@@ -18,23 +18,11 @@ export interface GeographicArea {
   areaUnits?: string;
 }
 
-export interface Impairment {
-  parameter: string;
-  status: string;
-  source?: string;
-}
-
 export interface Pollutant {
   name: string;
   currentLoad?: number | string;
   targetLoad?: number | string;
   unit?: string;
-}
-
-export interface RequiredReduction {
-  pollutant: string;
-  percent: number | string;
-  rationale?: string;
 }
 
 export interface Goal {
@@ -94,39 +82,6 @@ export interface OutreachActivity {
   partners?: string[];
 }
 
-export interface FundingItem {
-  source: string;
-  program?: string;
-  amount?: number;
-  fiscalYear?: number;
-  matchPercent?: number;
-}
-
-export interface FundingPlan {
-  items: FundingItem[];
-  totalEstimatedCost?: number;
-}
-
-export interface Milestone {
-  id: string;
-  description: string;
-  due: string;
-  relatedGoalIds?: number[];
-}
-
-export interface Stakeholder {
-  name: string;
-  role?: string;
-  contact?: string;
-}
-
-export interface Figure {
-  title: string;
-  url: string;
-  caption?: string;
-  page?: number;
-}
-
 export interface Summary {
   totalGoals: number;
   totalBMPs: number;
@@ -139,18 +94,29 @@ export interface ExtractedReport {
   name: string;
   identity?: ReportIdentity;
   geographicAreas: GeographicArea[];
-  landUse?: LandUseBreakdown[];
-  impairments?: Impairment[];
   pollutants?: Pollutant[];
-  requiredReductions?: RequiredReduction[];
   goals: Goal[];
   bmps: BMP[];
   implementationActivities?: ImplementationActivity[];
   monitoringMetrics: MonitoringMetric[];
   outreachActivities?: OutreachActivity[];
-  funding?: FundingPlan;
-  milestones?: Milestone[];
-  stakeholders?: Stakeholder[];
-  figures?: Figure[];
   summary: Summary;
+}
+export interface MetaJson {
+  guid: string;
+  name?: string;
+  totals?: { goals: number; bmps: number };
+  completionRate?: number;
+}
+
+export interface CreateOpenLinkRequest {
+  guid: string;
+  meta: MetaJson;
+  data: Record<string, unknown>;
+}
+
+export interface CreateOpenLinkResponse {
+  publicId: string;
+  url: string;
+  createdAt: string;
 }
