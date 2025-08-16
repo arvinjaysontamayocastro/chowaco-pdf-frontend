@@ -15,7 +15,6 @@ import {
   CreateOpenLinkResponse,
 } from '../types/types';
 import DataService from '../services/data.service';
-import { useJobStatus } from '../hooks/useJobStatus';
 import Charts from '../components/Charts';
 
 function parseStrict(answer: string, key: string) {
@@ -109,28 +108,6 @@ const keys = [
 
 type AskKey = (typeof keys)[number];
 
-// --- Small gated poller to avoid infinite intervals in useJobStatus ---
-type JobStatusResult = { status: string; error: string | null };
-
-function StatusWire({
-  id,
-  onUpdate,
-  intervalMs = 2500,
-}: {
-  id: string;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onUpdate: (_payload: { status: string; error: string | null }) => void;
-  intervalMs?: number;
-}) {
-  const { status, error } = useJobStatus(id, intervalMs) as JobStatusResult;
-
-  useEffect(() => {
-    onUpdate({ status: status ?? '', error: error ?? null });
-  }, [status, error, onUpdate]);
-
-  return null;
-}
-
 function PDFReport() {
   const initialReport = useLoaderData() as ExtractedReport | null;
   const { id: idParam } = useParams();
@@ -153,13 +130,6 @@ function PDFReport() {
   // View & link states
   const [viewMode, setViewMode] = useState<'json' | 'tree'>('json');
   const [openLink, setOpenLink] = useState<string | null>(null);
-
-  // Lifted job status (instead of calling the hook directly here)
-  const [jobStatus, setJobStatus] = useState<string>('');
-  const [jobError, setJobError] = useState<string | null>(null);
-
-  // Only poll while we actually need it
-  const shouldPoll = hasLocalCopy && !report?.isLoaded && id.length > 0;
 
   // helpers
   const wait = (ms: number) =>
@@ -194,6 +164,9 @@ function PDFReport() {
 
     const fetchData = async () => {
       try {
+        // small head-start for backend to stabilize if needed
+        await wait(500);
+
         const total = keys.length;
         let completed = 0;
         const draft: ExtractedReport = { ...report };
@@ -495,17 +468,6 @@ function PDFReport() {
 
   return (
     <main className={classes.main}>
-      {/* Mount the poller ONLY when actually needed */}
-      {shouldPoll && (
-        <StatusWire
-          id={id}
-          onUpdate={({ status, error }) => {
-            setJobStatus(status);
-            setJobError(error);
-          }}
-        />
-      )}
-
       <div className={classes.structuredData}>
         <div className={classes.container}>
           {loading || !report ? (
@@ -520,14 +482,9 @@ function PDFReport() {
                     style={{ width: `${progress}%` }}
                   />
                 </div>
-                {jobStatus !== 'ready' && jobStatus !== 'error' && (
-                  <p>
-                    Processing… <strong>{progress}%</strong>
-                  </p>
-                )}
-                {jobStatus === 'error' && (
-                  <p>Error: {jobError ?? 'Processing failed'}</p>
-                )}
+                <p>
+                  Processing… <strong>{progress}%</strong>
+                </p>
               </div>
             </>
           ) : (
@@ -564,7 +521,7 @@ function PDFReport() {
                 >
                   Copy Json
                 </button>
-                {!openLink && (
+                {!openLink && false && (
                   <button
                     type="button"
                     className={classes.btnAccent}

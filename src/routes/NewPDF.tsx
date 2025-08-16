@@ -481,7 +481,7 @@ function NewPDF() {
                       </button>
                     )}
 
-                    {isLocalCopy && !c.isPublicKey && (
+                    {isLocalCopy && !c.isPublicKey && false && (
                       <button
                         type="button"
                         onClick={() => handleMakePublic(c.id)}
