@@ -119,7 +119,7 @@ function StatusWire({
 }: {
   id: string;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onUpdate: (_payload: { status: string; error: string | null }) => void; // <- underscore
+  onUpdate: (_payload: { status: string; error: string | null }) => void;
   intervalMs?: number;
 }) {
   const { status, error } = useJobStatus(id, intervalMs) as JobStatusResult;
@@ -136,7 +136,7 @@ function PDFReport() {
   const { id: idParam } = useParams();
   const navigate = useNavigate();
 
-  // Single source of truth for id (no duplicates)
+  // Single source of truth for id
   const id = initialReport?.id ?? idParam ?? '';
 
   const [report, setReport] = useState<ExtractedReport | null>(initialReport);
@@ -298,13 +298,8 @@ function PDFReport() {
   );
 
   // ----- Button handlers -----
-  const handleTreeView = () => {
-    setViewMode('tree');
-  };
-
-  const handleJsonView = () => {
-    setViewMode('json');
-  };
+  const handleTreeView = () => setViewMode('tree');
+  const handleJsonView = () => setViewMode('json');
 
   const handleCopyJson = async () => {
     if (!structuredObject) return;
