@@ -1,39 +1,37 @@
-// src/routes/NewPDF.tsx  (Production-safe, refactored)
+// src/routes/NewPDF.tsx (Production-safe)
 import { useState, useEffect } from 'react';
 import classes from './NewPDF.module.css';
 import { useNavigate } from 'react-router-dom';
+import { ExtractedReport } from '../types/types';
+import type {
+  MetaJson,
+  CreateOpenLinkRequest,
+  CreateOpenLinkResponse,
+} from '../types/types';
+import DataService from '../services/data.service';
+import api from '../services/api';
 import UploadForm from '../components/UploadForm';
 import Snowfall from '../components/Snowfall';
+import BackendStatusCard from '../components/BackendStatusCard';
 import UploadedReportsList from '../components/UploadedReportsList';
 
+// ✅ unified service import
 import {
   loadReportsIndex,
   saveReportsIndex,
-  makeReportPublic,
   ReportsIndex,
-} from '../services/reportService';
+  ReportsIndexItem,
+} from '../services/reports.service';
 
 function NewPDF() {
   const [reportsIndex, setReportsIndex] = useState<ReportsIndex>(() =>
     loadReportsIndex()
   );
-
   const navigate = useNavigate();
 
   useEffect(() => {
     setReportsIndex(loadReportsIndex());
   }, []);
-
-  // ---- Make it Public (delegated to service)
-  const handleMakePublic = async (guid: string) => {
-    const next = await makeReportPublic(guid, reportsIndex);
-    if (!next) {
-      navigate(`/${guid}`);
-      return;
-    }
-    setReportsIndex(next);
-    alert('Public link created!');
-  };
 
   const cards = Object.values(reportsIndex).sort((a, b) => {
     const ta = a.createdAt ? Date.parse(a.createdAt) : 0;
@@ -44,8 +42,9 @@ function NewPDF() {
   return (
     <main className={classes.main}>
       <Snowfall count={10} />
+      <BackendStatusCard />
 
-      {/* 🟢 PDF Upload Form */}
+      {/* PDF Upload Form */}
       <UploadForm
         onUploadSuccess={(id, file) => {
           const nextIdx = loadReportsIndex();
@@ -67,7 +66,7 @@ function NewPDF() {
       {/* Uploaded PDF Reports */}
       <UploadedReportsList
         reportsIndex={reportsIndex}
-        onMakePublic={handleMakePublic}
+        setReportsIndex={setReportsIndex}
       />
     </main>
   );

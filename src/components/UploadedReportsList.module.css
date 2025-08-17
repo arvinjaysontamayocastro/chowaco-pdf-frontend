@@ -1,23 +1,51 @@
-.reports {
-  margin-top: 2rem;
+.structured {
+  display: block;
+  position: relative;
+  margin-top: 48px;
+  border-top: solid 1px #091320;
+  padding-top: 24px;
   text-align: left;
 }
 
-.reports h2 {
-  margin-bottom: 0.75rem;
+.togglebar {
+  display: block;
+  gap: 8px;
+  margin-bottom: 1rem;
 }
 
-.reportGrid {
+.togglebar button {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #f0f0f0;
+  font-weight: 600;
+  color: #333;
+}
+
+.togglebar .active {
+  background-image: linear-gradient(
+    to right,
+    rgb(250, 204, 21),
+    rgb(45, 212, 191)
+  );
+  color: #101010;
+  font-weight: bold;
+}
+
+.grid {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
 }
 
 .card {
-  border: 1px solid #dddddd;
-  border-radius: 8px;
-  padding: 1rem;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  padding: 0.85rem;
   background: #ffffff;
+  text-align: left;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -27,55 +55,41 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
+  margin-bottom: 6px;
+  word-break: break-all;
 }
 
-.badge {
-  background: #facc15;
-  color: #2a2630;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  margin-left: 6px;
+.publicBadge {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right, rgb(250, 204, 21), rgb(45, 212, 191));
+  color: #101010;
+  font-weight: 700;
 }
 
-.meta {
-  font-size: 0.85rem;
-  color: #666666;
+.cardBody {
+  font-size: 14px;
+  color: #444;
+  word-break: break-all;
 }
 
 .cardActions {
-  margin-top: 0.5rem;
   display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.cardActions button,
-.cardActions a,
-.smallBtn {
-  flex: 1;
-  padding: 0.4rem;
-  border: none;
-  background: #2a2630;
-  color: #ffffff;
-  border-radius: 4px;
+.actionBtn {
+  appearance: none;
+  border: 1px solid #dcdcdc;
+  background: #ffffff;
+  color: #222;
+  padding: 0.35rem 0.8rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
   cursor: pointer;
-  font-size: 0.85rem;
-  text-align: center;
   text-decoration: none;
-}
-
-.cardActions button:hover,
-.cardActions a:hover,
-.smallBtn:hover {
-  background: #444444;
-}
-
-.muted {
-  color: #999999;
-  font-size: 0.85rem;
-  grid-column: 1 / -1;
   text-align: center;
 }
