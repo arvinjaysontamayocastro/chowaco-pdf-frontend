@@ -16,6 +16,9 @@ function MainHeader() {
 
       <BackendStatusCard />
       <p>
+        <Link to="/readme" className={`${classes.button} ${classes.muted}`}>
+          READ ME
+        </Link>
         <Link to="/" className={classes.button}>
           {/* <MdPostAdd size={18} /> */}
           Process New PDF

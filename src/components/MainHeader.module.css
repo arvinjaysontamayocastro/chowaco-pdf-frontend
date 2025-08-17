@@ -81,3 +81,14 @@
     color: rgba(0, 0, 0, 0);
   }
 }
+
+.muted {
+  background: unset;
+  margin-right: 12px;
+  background-color: #e5e7eb; /* light gray */
+  color: #374151; /* dark gray text */
+}
+
+.muted:hover {
+  background-color: #d1d5db;
+}

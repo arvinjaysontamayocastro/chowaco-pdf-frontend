@@ -8,6 +8,7 @@ import RootLayout from './routes/RootLayout';
 
 import './index.css';
 import PDFReport, { loader as pdfReportLoader } from './routes/PDFReport.tsx';
+import ReadMePage from './routes/ReadMePage';
 
 const router = createBrowserRouter([
   {
@@ -24,6 +25,10 @@ const router = createBrowserRouter([
         ],
       },
     ],
+  },
+  {
+    path: '/readme',
+    element: <ReadMePage />,
   },
 ]);
 const rootElement = document.getElementById('root');
