@@ -11,8 +11,7 @@ import {
 } from '../types/types';
 import {
   ReportsIndex,
-  saveReportsIndex,
-  formatSize, // still used in PublicReportsList; safe to keep
+  saveReportsIndex, // still used in PublicReportsList; safe to keep
 } from '../services/reports.service';
 
 import LocalReportsList, { LocalReportItem } from './LocalReportsList';
@@ -61,7 +60,6 @@ export default function UploadedReportsList({
     }
   }, [activeTab]);
 
-  // Make Public (kept same behavior)
   const handleMakePublic = async (guid: string) => {
     const local = DataService.getData(guid) as ExtractedReport | null;
     if (!local || !local.isLoaded) {

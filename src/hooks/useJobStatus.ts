@@ -1,7 +1,3 @@
-// frontend/src/hooks/useJobStatus.ts
-// Polls /status/:guid every intervalMs and returns {status, progress, error}
-// Enhancements: stop on terminal states, 404→missing, backoff on errors, pause when hidden, configurable basePath.
-
 import { useEffect, useRef, useState } from 'react';
 import axios, { AxiosError } from 'axios';
 
@@ -14,7 +10,6 @@ type Options = {
 };
 
 export function useJobStatus(guid: string, intervalMs = 2500) {
-  // Backward-compatible wrapper
   return useJobStatusEx(guid, { intervalMs });
 }
 
@@ -27,7 +22,7 @@ export function useJobStatusEx(
   const [error, setError] = useState<string | null>(null);
 
   const stoppedRef = useRef(false);
-  const backoffRef = useRef(intervalMs); // start at base interval
+  const backoffRef = useRef(intervalMs);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -49,12 +44,10 @@ export function useJobStatusEx(
     };
 
     const onVisibility = () => {
-      // When hidden, poll slower; when visible, reset to base
       backoffRef.current =
         document.visibilityState === 'hidden'
           ? Math.max(intervalMs * 4, 5000)
           : intervalMs;
-      // If we just became visible, kick an immediate refresh
       if (document.visibilityState === 'visible') schedule(0);
     };
 
@@ -70,7 +63,6 @@ export function useJobStatusEx(
           setStatus('missing');
           setProgress(0);
           setError(null);
-          // keep polling a bit in case the job just got created
           return schedule(backoffRef.current);
         }
         if (res.status >= 400) {
@@ -114,7 +106,6 @@ export function useJobStatusEx(
     }
 
     document.addEventListener('visibilitychange', onVisibility);
-    // kick off immediately
     schedule(0);
 
     return () => {

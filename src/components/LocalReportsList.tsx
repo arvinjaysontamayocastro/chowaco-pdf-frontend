@@ -12,7 +12,9 @@ export interface LocalReportItem {
 
 interface Props {
   items: LocalReportItem[];
+  // eslint-disable-next-line no-unused-vars
   onOpen: (guid: string) => void;
+  // eslint-disable-next-line no-unused-vars
   onMakePublic: (guid: string) => void;
 }
 

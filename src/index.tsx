@@ -22,7 +22,7 @@ const router = createBrowserRouter([
           { path: '/', element: <NewPDF /> }, //, action: NewPDFAction
           { path: '/:id', element: <PDFReport />, loader: pdfReportLoader },
         ],
-      }, // our domain
+      },
     ],
   },
 ]);

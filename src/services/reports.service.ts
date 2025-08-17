@@ -1,5 +1,3 @@
-// src/services/reportService.ts
-
 export interface ReportsIndexItem {
   id: string;
   fileName: string;
@@ -30,7 +28,6 @@ export function saveReportsIndex(idx: ReportsIndex) {
   localStorage.setItem(INDEX_KEY, JSON.stringify(idx));
 }
 
-// ✅ Utility function
 export function formatSize(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return '—';
   if (bytes < 1024 * 1024) {

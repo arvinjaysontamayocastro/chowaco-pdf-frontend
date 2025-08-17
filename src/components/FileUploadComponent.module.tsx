@@ -3,32 +3,6 @@ import classes from './FileUploadComponent.module.css';
 import React, { useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 
-// function FileUploadComponent() {
-//   const { getRootProps, getInputProps } = useDropzone({
-//     onDrop: (acceptedFiles) => {
-//       if (acceptedFiles.length > 2) {
-//         alert("You can only upload a maximum of 2 resumes at a time.");
-//         return;
-//       } else {
-//         // Add logic to upload files
-//         console.log(acceptedFiles);
-//       }
-//     },
-//   });
-
-//   return (
-//     <div {...getRootProps()} className={classes.file_input}>
-//       <input {...getInputProps()} />
-//       <p>
-//         You can either click to browse and select firles, or simply drag and
-//         drop them into this area.
-//       </p>
-//     </div>
-//   );
-// }
-
-// export default FileUploadComponent;
-
 function FileUploadComponent(props: FileUploadProps) {
   const { required, name } = props;
 
@@ -37,8 +11,6 @@ function FileUploadComponent(props: FileUploadProps) {
   const { getRootProps, getInputProps, open, acceptedFiles } = useDropzone({
     onDrop: (incomingFiles) => {
       if (hiddenInputRef.current) {
-        // Note the specific way we need to munge the file into the hidden input
-        // https://stackoverflow.com/a/68182158/1068446
         const dataTransfer = new DataTransfer();
         incomingFiles.forEach((v) => {
           dataTransfer.items.add(v);

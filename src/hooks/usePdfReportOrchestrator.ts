@@ -64,7 +64,6 @@ function usePdfReportOrchestratorInternal(
   const [currentStep, setCurrentStep] = useState<AskKey | null>(null);
   const [loading, setLoading] = useState(!initialReport?.isLoaded);
 
-  // Private-only behavior: if no local copy on this device, stop loading and show a back screen
   const hasLocalCopy = Boolean(initialReport);
   useEffect(() => {
     if (!hasLocalCopy) setLoading(false);

@@ -1,4 +1,3 @@
-// src/components/BackendStatusCard.tsx
 import { useEffect, useState } from 'react';
 import classes from './BackendStatusCard.module.css';
 

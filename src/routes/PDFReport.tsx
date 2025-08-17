@@ -18,14 +18,6 @@ import DataService from '../services/data.service';
 import Charts from '../components/Charts';
 import { getProp } from '../utils/safeGet';
 
-// safe getter for optional/unknown extra fields
-
-// Compute Summary from a report (no side effects)
-
-// Expanded keys list (adapter names on the right side of the switch)
-
-/** Phase 2: Orchestration hook (moved from component to keep UI thin) */
-
 function PDFReport() {
   const initialReport = useLoaderData() as ExtractedReport | null;
   const { id: idParam } = useParams();
