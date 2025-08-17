@@ -2,6 +2,7 @@ import { MdPictureAsPdf } from 'react-icons/md';
 
 import classes from './MainHeader.module.css';
 import { Link } from 'react-router-dom';
+import BackendStatusCard from './BackendStatusCard';
 
 function MainHeader() {
   return (
@@ -12,6 +13,8 @@ function MainHeader() {
           Juicy Extracts
         </h1>
       </Link>
+
+      <BackendStatusCard />
       <p>
         <Link to="/" className={classes.button}>
           {/* <MdPostAdd size={18} /> */}

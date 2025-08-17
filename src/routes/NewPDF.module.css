@@ -353,3 +353,7 @@
   grid-column: 1 / -1;
   text-align: center;
 }
+.health {
+  margin: 1rem 0;
+  font-size: 14px;
+}
