@@ -3,7 +3,6 @@ import classes from './UploadForm.module.css';
 import KeyService from '../services/key.service';
 import DataService from '../services/data.service';
 import api from '../services/api';
-import axios from 'axios';
 import type { AxiosProgressEvent } from 'axios';
 import { ExtractedReport, Summary } from '../types/types';
 
@@ -11,7 +10,7 @@ const MAX_SIZE_MB = 20;
 const PDF_MIME = 'application/pdf';
 
 interface Props {
-  onUploadSuccess: (id: string, file: File) => void;
+  onUploadSuccess: () => void; //id: string, file: File
 }
 
 export default function UploadForm({ onUploadSuccess }: Props) {

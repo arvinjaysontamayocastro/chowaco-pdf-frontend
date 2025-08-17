@@ -12,15 +12,13 @@ import {
 } from '../types/types';
 import {
   ReportsIndex,
-  ReportsIndexItem,
-  loadReportsIndex,
   saveReportsIndex,
   formatSize,
 } from '../services/reports.service';
 
 interface UploadedReportsListProps {
   reportsIndex: ReportsIndex;
-  setReportsIndex: (next: ReportsIndex) => void;
+  setReportsIndex: () => void; //next: ReportsIndex
 }
 
 interface PublicReport {
@@ -37,6 +35,8 @@ export default function UploadedReportsList({
 }: UploadedReportsListProps) {
   const [activeTab, setActiveTab] = useState<'local' | 'public'>('local');
   const [publicReports, setPublicReports] = useState<PublicReport[]>([]);
+
+  // eslint-disable-next-line no-unused-vars
   const [noteById, setNoteById] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
@@ -47,6 +47,7 @@ export default function UploadedReportsList({
         .then((res) => {
           const data = Array.isArray(res.data) ? res.data : [];
           setPublicReports(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data.map((x: any) => ({
               id: x.id ?? '',
               guid: x.guid ?? '',
@@ -71,7 +72,7 @@ export default function UploadedReportsList({
     }
 
     try {
-      console.log('reportsIndex', reportsIndex);
+      // console.log('reportsIndex', reportsIndex);
 
       const meta: MetaJson = {
         guid,

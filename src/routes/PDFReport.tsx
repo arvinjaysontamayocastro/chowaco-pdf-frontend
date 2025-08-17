@@ -1,5 +1,5 @@
 import { usePdfReportOrchestrator } from '../hooks/usePdfReportOrchestrator';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import api from '../services/api';
 import classes from './PDFReport.module.css';
 import {
@@ -10,27 +10,15 @@ import {
 } from 'react-router-dom';
 import {
   ExtractedReport,
-  Summary,
   MetaJson,
   CreateOpenLinkRequest,
   CreateOpenLinkResponse,
 } from '../types/types';
 import DataService from '../services/data.service';
-import { useReportData } from '../hooks/useReportData';
-import { parseStrict } from '../utils/parser';
 import Charts from '../components/Charts';
+import { getProp } from '../utils/safeGet';
 
 // safe getter for optional/unknown extra fields
-function getProp<T>(obj: unknown, key: string): T | undefined {
-  if (
-    obj &&
-    typeof obj === 'object' &&
-    key in (obj as Record<string, unknown>)
-  ) {
-    return (obj as Record<string, unknown>)[key] as T;
-  }
-  return undefined;
-}
 
 // Compute Summary from a report (no side effects)
 

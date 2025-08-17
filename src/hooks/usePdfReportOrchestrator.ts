@@ -30,6 +30,7 @@ function computeSummary(report: ExtractedReport): Summary {
     g: unknown
   ): g is { completionRate?: number | null } => {
     return (
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       g !== null && typeof g === 'object' && 'completionRate' in (g as any)
     );
   };
@@ -155,7 +156,7 @@ function usePdfReportOrchestratorInternal(
                 break;
             }
           } catch (err) {
-            console.debug(`[ask:${key}] failed`, err);
+            // console.debug(`[ask:${key}] failed`, err);
           } finally {
             completed++;
             setProgress(Math.round((completed / total) * 100));
