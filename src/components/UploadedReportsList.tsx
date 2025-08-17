@@ -19,6 +19,7 @@ import PublicReportsList from './PublicReportsList';
 
 interface UploadedReportsListProps {
   reportsIndex: ReportsIndex;
+  // eslint-disable-next-line no-unused-vars
   setReportsIndex: (next: ReportsIndex) => void;
 }
 
