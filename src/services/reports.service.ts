@@ -1,3 +1,5 @@
+// src/services/reportService.ts
+
 export interface ReportsIndexItem {
   id: string;
   fileName: string;
@@ -7,11 +9,11 @@ export interface ReportsIndexItem {
   publicUrl?: string | null;
   createdAt?: string;
 }
+
 export type ReportsIndex = Record<string, ReportsIndexItem>;
 
 const INDEX_KEY = 'reports_index';
 
-// Load from localStorage
 export function loadReportsIndex(): ReportsIndex {
   try {
     const s = localStorage.getItem(INDEX_KEY);
@@ -24,12 +26,11 @@ export function loadReportsIndex(): ReportsIndex {
   return {};
 }
 
-// Save to localStorage
 export function saveReportsIndex(idx: ReportsIndex) {
   localStorage.setItem(INDEX_KEY, JSON.stringify(idx));
 }
 
-// Utility: format file size
+// ✅ Utility function
 export function formatSize(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return '—';
   if (bytes < 1024 * 1024) {

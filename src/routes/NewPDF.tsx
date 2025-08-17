@@ -41,9 +41,7 @@ function NewPDF() {
 
   return (
     <main className={classes.main}>
-      <Snowfall count={10} />
-      <BackendStatusCard />
-
+      <Snowfall count={13} />
       {/* PDF Upload Form */}
       <UploadForm
         onUploadSuccess={(id, file) => {
