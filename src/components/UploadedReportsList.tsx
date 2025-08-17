@@ -37,7 +37,7 @@ export default function UploadedReportsList({
   const [publicReports, setPublicReports] = useState<PublicReport[]>([]);
 
   // eslint-disable-next-line no-unused-vars
-  const [noteById, setNoteById] = useState<Record<string, string>>({});
+  const [noteById] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
   useEffect(() => {
