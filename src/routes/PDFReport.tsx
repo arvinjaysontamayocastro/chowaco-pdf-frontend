@@ -31,35 +31,22 @@ function getProp<T>(obj: unknown, key: string): T | undefined {
   return undefined;
 }
 
-// type guard for goal objects that might include completionRate
-function hasCompletionRate(x: unknown): x is { completionRate?: unknown } {
-  return typeof x === 'object' && x !== null && 'completionRate' in x;
-}
-
+// Compute Summary from a report (no side effects)
 function computeSummary(report: ExtractedReport): Summary {
-  const totalGoals = Array.isArray(report.goals) ? report.goals.length : 0;
-  const totalBMPs = Array.isArray(report.bmps) ? report.bmps.length : 0;
-
   const toPct = (v: unknown): number | null => {
-    if (typeof v === 'string') {
-      const s = v.trim().toLowerCase();
-
-      const m = s.match(/(-?\d+(\.\d+)?)\s*%/);
-      if (m) {
-        const n = Number(m[1]);
-        if (Number.isFinite(n)) return Math.max(0, Math.min(100, n));
-      }
-      if (/(^|\b)(complete|completed|done)\b/.test(s)) return 100;
-      if (/\b(in[-\s]?progress|ongoing|underway)\b/.test(s)) return 50;
-      if (/\b(not\s*started|pending|tbd)\b/.test(s)) return 0;
-
-      const n2 = Number(s);
-      if (Number.isFinite(n2)) {
-        if (n2 <= 1 && n2 >= 0) return Math.round(n2 * 100);
-        if (n2 >= 0 && n2 <= 100) return Math.round(n2);
-      }
-    }
+    if (typeof v !== 'number' || !Number.isFinite(v)) return null;
+    // allow 0–1 or 0–100 inputs; normalize to 0–100
+    if (v >= 0 && v <= 1) return Math.round(v * 100);
+    if (v >= 0 && v <= 100) return Math.round(v);
     return null;
+  };
+
+  const hasCompletionRate = (
+    g: unknown
+  ): g is { completionRate?: number | null } => {
+    return (
+      g !== null && typeof g === 'object' && 'completionRate' in (g as any)
+    );
   };
 
   let sum = 0;
@@ -74,16 +61,16 @@ function computeSummary(report: ExtractedReport): Summary {
     }
   }
 
-  const completionRate = count > 0 ? Math.round(sum / count) : 0;
+  const avg = count > 0 ? Math.round(sum / count) : null;
 
   return {
-    totalGoals,
-    totalBMPs,
-    completionRate,
+    totalGoals: Array.isArray(report.goals) ? report.goals.length : 0,
+    totalBMPs: Array.isArray(report.bmps) ? report.bmps.length : 0,
+    completionRate: avg,
   } as Summary;
 }
 
-// Expanded keys list
+// Expanded keys list (adapter names on the right side of the switch)
 const keys = [
   'identity',
   'pollutants',
@@ -97,14 +84,8 @@ const keys = [
 
 type AskKey = (typeof keys)[number];
 
-function PDFReport() {
-  const initialReport = useLoaderData() as ExtractedReport | null;
-  const { id: idParam } = useParams();
-  const navigate = useNavigate();
-
-  // Single source of truth for id
-  const id = initialReport?.id ?? idParam ?? '';
-
+/** Phase 2: Orchestration hook (moved from component to keep UI thin) */
+function usePdfReportOrchestrator(initialReport: ExtractedReport | null) {
   const [report, setReport] = useState<ExtractedReport | null>(initialReport);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState<AskKey | null>(null);
@@ -116,11 +97,6 @@ function PDFReport() {
     if (!hasLocalCopy) setLoading(false);
   }, [hasLocalCopy]);
 
-  // View & link states
-  const [viewMode, setViewMode] = useState<'json' | 'tree'>('json');
-  const [openLink, setOpenLink] = useState<string | null>(null);
-
-  // helpers
   const wait = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
   const ASK_DELAY_MS = 1000;
@@ -207,10 +183,7 @@ function PDFReport() {
                 break;
             }
           } catch (err) {
-            if (process.env.NODE_ENV !== 'production') {
-              // eslint-disable-next-line no-console
-              console.debug(`[ask:${key}] failed`, err);
-            }
+            console.debug(`[ask:${key}] failed`, err);
           } finally {
             completed++;
             setProgress(Math.round((completed / total) * 100));
@@ -232,23 +205,53 @@ function PDFReport() {
     fetchData();
   }, [report]);
 
+  return { report, loading, progress, currentStep, hasLocalCopy };
+}
+
+function PDFReport() {
+  const initialReport = useLoaderData() as ExtractedReport | null;
+  const { id: idParam } = useParams();
+  const navigate = useNavigate();
+
+  // Single source of truth for id
+  const id = initialReport?.id ?? idParam ?? '';
+
+  // Phase 2: thin component — orchestration moved into hook
+  const { report, loading, progress, currentStep, hasLocalCopy } =
+    usePdfReportOrchestrator(initialReport);
+
+  // View & link states
+  const [viewMode, setViewMode] = useState<'json' | 'tree'>('json');
+  const [openLink, setOpenLink] = useState<string | null>(null);
+
   // build the JSON object used in both views (and for copy)
   const extra = report as unknown;
   const structuredObject = useMemo(
     () =>
-      report && report.isLoaded
+      report
         ? {
+            id: report.id,
+            name: report.name,
+            isLoaded: report.isLoaded,
+            fileName: report.fileName,
+            fileSizeBytes: report.fileSizeBytes,
             identity: report.identity,
             geographicAreas: report.geographicAreas,
-            landUse: getProp<unknown>(extra, 'landUse'),
-            impairments: getProp<unknown>(extra, 'impairments'),
             pollutants: report.pollutants,
-            requiredReductions: getProp<unknown>(extra, 'requiredReductions'),
             goals: report.goals,
             bmps: report.bmps,
             implementationActivities: report.implementationActivities,
             monitoringMetrics: report.monitoringMetrics,
             outreachActivities: report.outreachActivities,
+            requiredReductions: getProp<unknown>(extra, 'requiredReductions'),
+            goalsTotals: getProp<unknown>(extra, 'goalsTotals'),
+            bmpsTotals: getProp<unknown>(extra, 'bmpsTotals'),
+            implementationTotals: getProp<unknown>(
+              extra,
+              'implementationTotals'
+            ),
+            monitoringTotals: getProp<unknown>(extra, 'monitoringTotals'),
+            outreachTotals: getProp<unknown>(extra, 'outreachTotals'),
             funding: getProp<unknown>(extra, 'funding'),
             milestones: getProp<unknown>(extra, 'milestones'),
             stakeholders: getProp<unknown>(extra, 'stakeholders'),
@@ -274,8 +277,9 @@ function PDFReport() {
     }
   };
 
+  // ----- Open link creation / clipboard -----
   const handleCreateOpenLink = async () => {
-    if (!structuredObject) {
+    if (!report || !structuredObject) {
       alert('No data to publish');
       return;
     }
@@ -294,19 +298,13 @@ function PDFReport() {
         meta,
         data: structuredObject as Record<string, unknown>,
       };
-      const res = await api.post<CreateOpenLinkResponse>('/openlinks', body, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const url = res.data?.url;
-      if (url) setOpenLink(url);
 
-      // Optional explicit cleanup (server also cleans up inside create)
-      try {
-        await api.delete(`/documents/${id}`);
-      } catch (err) {
-        if (process.env.NODE_ENV !== 'production') {
-          // eslint-disable-next-line no-console
-          console.debug('Cleanup after open link failed', err);
+      const res = await api.post<CreateOpenLinkResponse>('/open-links', body);
+      if (res?.data) {
+        const url = res.data?.url;
+        if (url) setOpenLink(url);
+        if (res.data?.publicId) {
+          // optionally persist or notify — left as-is to keep behavior
         }
       }
     } catch {
@@ -353,7 +351,7 @@ function PDFReport() {
       default:
         display = String(value);
     }
-    return <span className={classes.treePrimitive}>{display}</span>;
+    return <span className={classes.treeValue}>{display}</span>;
   };
 
   const TreeNode = ({ data, label }: TreeProps) => {
@@ -365,24 +363,28 @@ function PDFReport() {
             <span className={classes.treeMeta}>[{data.length}]</span>
           </summary>
           <div className={classes.treeChildren}>
-            {data.map((item, idx) => (
-              <TreeNode key={idx} data={item} label={String(idx)} />
+            {data.map((v, i) => (
+              <div key={i} className={classes.treeRow}>
+                <span className={classes.treeKey}>[{i}]</span>{' '}
+                {isPlainObject(v) || Array.isArray(v) ? (
+                  <TreeNode data={v} label={String(i)} />
+                ) : (
+                  <Primitive value={v} />
+                )}
+              </div>
             ))}
           </div>
         </details>
       );
     }
+
     if (isPlainObject(data)) {
       const entries = Object.entries(data);
       return (
         <details className={classes.treeNode} open>
           <summary className={classes.treeSummary}>
             {label ?? 'Object'}{' '}
-            <span className={classes.treeMeta}>
-              {'{'}
-              {entries.length}
-              {'}'}
-            </span>
+            <span className={classes.treeMeta}>{{}.toString.call(data)}</span>
           </summary>
           <div className={classes.treeChildren}>
             {entries.map(([k, v]) => (
@@ -399,10 +401,10 @@ function PDFReport() {
         </details>
       );
     }
-    // primitive
+
     return (
       <div className={classes.treeRow}>
-        {label ? <span className={classes.treeKey}>{label}:</span> : null}{' '}
+        <span className={classes.treeKey}>{label}</span>{' '}
         <Primitive value={data} />
       </div>
     );
@@ -419,34 +421,25 @@ function PDFReport() {
             <div className={classes.structured}>
               <div
                 style={{
+                  padding: '1rem',
+                  background: '#f9f9f9',
                   border: '1px solid #e6e6e6',
                   borderRadius: 12,
-                  padding: '0.85rem',
-                  background: '#ffffff',
-                  textAlign: 'left',
                 }}
               >
-                <p style={{ marginTop: 0 }}>
-                  This report can only be opened on the device where it was
-                  created.
+                <p>
+                  This report is private to the device where it was first
+                  generated. Open it there to share/export.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => navigate('/')}
-                  style={{
-                    appearance: 'none',
-                    border: '1px solid #dcdcdc',
-                    background: '#ffffff',
-                    color: '#222',
-                    padding: '0.45rem 0.8rem',
-                    borderRadius: 10,
-                    fontWeight: 600,
-                    fontSize: '0.9rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Back to Upload
-                </button>
+                <div className={classes.actionsRow}>
+                  <button
+                    type="button"
+                    className={classes.btn}
+                    onClick={() => navigate('/')}
+                  >
+                    Back to Upload
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -479,46 +472,47 @@ function PDFReport() {
           ) : (
             <>
               <h1>PDF Report</h1>
-              <h2>Structured Data</h2>
+              <h2>Structured Data for {report?.name}</h2>
 
-              {/* Minimalist/wow actions row */}
               <div className={classes.actionsRow}>
-                <button
-                  type="button"
-                  className={`${classes.btn} ${
-                    viewMode === 'tree' ? classes.btnActive : classes.btnGhost
-                  }`}
-                  aria-pressed={viewMode === 'tree'}
-                  onClick={handleTreeView}
-                >
-                  TreeView
-                </button>
-                <button
-                  type="button"
-                  className={`${classes.btn} ${
-                    viewMode === 'json' ? classes.btnActive : classes.btnGhost
-                  }`}
-                  aria-pressed={viewMode === 'json'}
-                  onClick={handleJsonView}
-                >
-                  JsonView
-                </button>
-                <button
-                  type="button"
-                  className={classes.btn}
-                  onClick={handleCopyJson}
-                >
-                  Copy Json
-                </button>
-                {!openLink && false && (
+                <div className={classes.btnGroup}>
                   <button
                     type="button"
-                    className={classes.btnAccent}
-                    onClick={handleCreateOpenLink}
+                    className={`${classes.btn} ${
+                      viewMode === 'tree' ? classes.active : ''
+                    }`}
+                    aria-pressed={viewMode === 'tree'}
+                    onClick={handleTreeView}
                   >
-                    Create Open Link
+                    TreeView
                   </button>
-                )}
+                  <button
+                    type="button"
+                    className={`${classes.btn} ${
+                      viewMode === 'json' ? classes.active : ''
+                    }`}
+                    aria-pressed={viewMode === 'json'}
+                    onClick={handleJsonView}
+                  >
+                    JsonView
+                  </button>
+                  <button
+                    type="button"
+                    className={classes.btn}
+                    onClick={handleCopyJson}
+                  >
+                    Copy Json
+                  </button>
+                  {!openLink && false && (
+                    <button
+                      type="button"
+                      className={classes.btn}
+                      onClick={handleCreateOpenLink}
+                    >
+                      Create Open Link
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Open Link card (shown after Create Open Link) */}
@@ -557,8 +551,8 @@ function PDFReport() {
                   </pre>
                 ) : (
                   <div
-                    className={classes.pre}
-                    style={{ background: '#f9f9f9', padding: '1rem' }}
+                    className={classes.treeRoot}
+                    style={{ background: '#f0f0f0', padding: '1rem' }}
                   >
                     <TreeNode data={structuredObject} label="root" />
                   </div>
