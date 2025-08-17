@@ -15,20 +15,9 @@ import {
   CreateOpenLinkResponse,
 } from '../types/types';
 import DataService from '../services/data.service';
+import { useReportData } from '../hooks/useReportData';
+import { parseStrict } from '../utils/parser';
 import Charts from '../components/Charts';
-
-function parseStrict(answer: string, key: string) {
-  try {
-    const obj = JSON.parse(answer) as unknown;
-    if (obj && typeof obj === 'object') {
-      const val = (obj as Record<string, unknown>)[key];
-      return typeof val === 'undefined' ? null : val;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 // safe getter for optional/unknown extra fields
 function getProp<T>(obj: unknown, key: string): T | undefined {
