@@ -101,12 +101,21 @@ export interface ExtractedReport {
   monitoringMetrics: MonitoringMetric[];
   outreachActivities?: OutreachActivity[];
   summary: Summary;
+  fileName: string;
+  fileSizeBytes: number;
 }
 export interface MetaJson {
   guid: string;
   name?: string;
-  totals?: { goals: number; bmps: number };
+  totals?: {
+    goals: number;
+    bmps: number;
+    completionRate: number;
+  };
   completionRate?: number;
+  fileName?: string;
+  fileSizeBytes?: number;
+  note?: string; // up to 300 chars
 }
 
 export interface CreateOpenLinkRequest {

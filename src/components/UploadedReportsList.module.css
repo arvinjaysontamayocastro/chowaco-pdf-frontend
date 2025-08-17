@@ -93,3 +93,110 @@
   text-decoration: none;
   text-align: center;
 }
+.structured {
+  margin-top: 1.5rem;
+}
+
+/* 🔹 Tabs */
+.tabbuttons {
+  display: flex;
+  margin-top: 0.5rem;
+}
+
+.tabbuttons button {
+  padding: 12px 6px;
+  cursor: pointer;
+  flex: 1;
+  border: none;
+  border-right: solid 1px #bbbbbb;
+  border-bottom: solid 1px #bbbbbb;
+  background: #f7f7f7;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.2s ease-in-out;
+}
+
+.tabbuttons button:last-child {
+  border-right: none;
+}
+
+.tabbuttons button:hover {
+  background: #eeeeee;
+}
+
+.tabbuttons .active {
+  background-image: linear-gradient(
+    to right,
+    rgb(250, 204, 21),
+    rgb(45, 212, 191)
+  );
+  color: #2a2630;
+  border-top: solid 4px #2a2630;
+  font-weight: bolder;
+  padding-top: 8px;
+}
+
+/* 🔹 Card base */
+.card {
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  padding: 0.85rem;
+  background: #ffffff;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* 🔹 Public badge */
+.badge {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right, rgb(250, 204, 21), rgb(45, 212, 191));
+  color: #101010;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+/* 🔹 Note box */
+.note {
+  width: 100%;
+  font-size: 12px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  resize: none;
+  margin-top: 6px;
+}
+
+/* 🔹 Buttons */
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.button {
+  appearance: none;
+  border: 1px solid #dcdcdc;
+  background: #ffffff;
+  color: #222;
+  padding: 0.35rem 0.8rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.buttonPrimary {
+  border: 1px solid #101010;
+  background: #101010;
+  color: #fff;
+  font-weight: 700;
+}
+.filename {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
