@@ -1,0 +1,52 @@
+.emptyState {
+  padding: 1rem;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.card {
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  padding: 0.85rem;
+  background: #ffffff;
+  text-align: left;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.cardTitle {
+  font-size: 16px;
+}
+
+.cardDate {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.cardFileName {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-bottom: 8px;
+}
+
+.link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}

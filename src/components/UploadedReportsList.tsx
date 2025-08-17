@@ -1,4 +1,3 @@
-// src/components/UploadedReportsList.tsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classes from './UploadedReportsList.module.css';
@@ -13,12 +12,15 @@ import {
 import {
   ReportsIndex,
   saveReportsIndex,
-  formatSize,
+  formatSize, // still used in PublicReportsList; safe to keep
 } from '../services/reports.service';
+
+import LocalReportsList, { LocalReportItem } from './LocalReportsList';
+import PublicReportsList from './PublicReportsList';
 
 interface UploadedReportsListProps {
   reportsIndex: ReportsIndex;
-  setReportsIndex: () => void; //next: ReportsIndex
+  setReportsIndex: (next: ReportsIndex) => void;
 }
 
 interface PublicReport {
@@ -35,8 +37,6 @@ export default function UploadedReportsList({
 }: UploadedReportsListProps) {
   const [activeTab, setActiveTab] = useState<'local' | 'public'>('local');
   const [publicReports, setPublicReports] = useState<PublicReport[]>([]);
-
-  // eslint-disable-next-line no-unused-vars
   const [noteById] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
@@ -57,13 +57,11 @@ export default function UploadedReportsList({
             }))
           );
         })
-        .catch(() => {
-          setPublicReports([]);
-        });
+        .catch(() => setPublicReports([]));
     }
   }, [activeTab]);
 
-  // ---- make it public
+  // Make Public (kept same behavior)
   const handleMakePublic = async (guid: string) => {
     const local = DataService.getData(guid) as ExtractedReport | null;
     if (!local || !local.isLoaded) {
@@ -72,8 +70,6 @@ export default function UploadedReportsList({
     }
 
     try {
-      // console.log('reportsIndex', reportsIndex);
-
       const meta: MetaJson = {
         guid,
         name: local.name,
@@ -120,11 +116,29 @@ export default function UploadedReportsList({
     }
   };
 
-  // ---- sorted local reports
-  const localCards = Object.values(reportsIndex).sort((a, b) => {
+  const openReport = (guid: string) => navigate(`/${guid}`);
+
+  // Sorted local reports → map into presentational items for LocalReportsList
+  const localCardsSorted = Object.values(reportsIndex).sort((a, b) => {
     const ta = a.createdAt ? Date.parse(a.createdAt) : 0;
     const tb = b.createdAt ? Date.parse(b.createdAt) : 0;
     return tb - ta;
+  });
+
+  const localItems: LocalReportItem[] = localCardsSorted.map((c) => {
+    const guid = c.id;
+    const local = DataService.getData(guid) as ExtractedReport | null;
+    const isLocalCopy = Boolean(local);
+    const displayName = local?.name ?? `PDF ${guid.slice(0, 6)}`;
+
+    return {
+      id: guid,
+      displayName,
+      fileName: c.fileName,
+      fileSizeBytes: c.fileSizeBytes,
+      isLocalCopy,
+      publicUrl: c.publicUrl,
+    };
   });
 
   return (
@@ -145,167 +159,21 @@ export default function UploadedReportsList({
           className={activeTab === 'public' ? classes.active : ''}
           onClick={() => setActiveTab('public')}
         >
-          Public Reports
+          Public Reports <span className={classes.badge}>Soon</span>
         </button>
       </div>
 
       {/* Tab content */}
       {activeTab === 'local' && (
-        <>
-          {localCards.length === 0 && (
-            <div className={classes.emptyState}>No local reports yet.</div>
-          )}
-
-          {localCards.length > 0 && (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                gap: '12px',
-                marginTop: '12px',
-              }}
-            >
-              {localCards.map((c) => {
-                const guid = c.id;
-                const local = DataService.getData(
-                  guid
-                ) as ExtractedReport | null;
-                const isLocalCopy = Boolean(local);
-                const displayName = local?.name ?? `PDF ${guid.slice(0, 6)}`;
-
-                return (
-                  <div
-                    key={c.id}
-                    style={{
-                      border: '1px solid #e6e6e6',
-                      borderRadius: 12,
-                      padding: '0.85rem',
-                      background: '#ffffff',
-                      textAlign: 'left',
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: 6,
-                      }}
-                    >
-                      <strong style={{ fontSize: 16 }}>{displayName}</strong>
-                      <span style={{ fontSize: 12, opacity: 0.7 }}>
-                        {formatSize(c.fileSizeBytes)}
-                      </span>
-                    </div>
-
-                    <div
-                      style={{ fontSize: 12, opacity: 0.8, marginBottom: 8 }}
-                    >
-                      {c.fileName}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <button onClick={() => navigate(`/${guid}`)}>Open</button>
-                      {isLocalCopy && (
-                        <button onClick={() => handleMakePublic(guid)}>
-                          Make Public
-                        </button>
-                      )}
-                      {c.publicUrl && (
-                        <a
-                          href={c.publicUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{
-                            textDecoration: 'none',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 6,
-                            padding: '0.35rem 0.6rem',
-                            border: '1px solid #ddd',
-                            borderRadius: 8,
-                          }}
-                        >
-                          View Public Link
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </>
+        <LocalReportsList
+          items={localItems}
+          onOpen={openReport}
+          onMakePublic={handleMakePublic}
+        />
       )}
 
       {activeTab === 'public' && (
-        <>
-          {publicReports.length === 0 && (
-            <div className={classes.emptyState}>No public reports found.</div>
-          )}
-
-          {publicReports.length > 0 && (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                gap: '12px',
-                marginTop: '12px',
-              }}
-            >
-              {publicReports.map((p) => (
-                <div
-                  key={p.id}
-                  style={{
-                    border: '1px solid #e6e6e6',
-                    borderRadius: 12,
-                    padding: '0.85rem',
-                    background: '#ffffff',
-                    textAlign: 'left',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: 6,
-                    }}
-                  >
-                    <strong style={{ fontSize: 16 }}>
-                      {p.meta?.name ?? `Public ${p.id.slice(0, 6)}`}
-                    </strong>
-                    <span style={{ fontSize: 12, opacity: 0.7 }}>
-                      {p.createdAt
-                        ? new Date(p.createdAt).toLocaleString()
-                        : ''}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 8 }}>
-                    {p.meta?.fileName} •{' '}
-                    {formatSize(p.meta?.fileSizeBytes ?? 0)}
-                  </div>
-                  <a
-                    href={p.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      textDecoration: 'none',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      padding: '0.35rem 0.6rem',
-                      border: '1px solid #ddd',
-                      borderRadius: 8,
-                    }}
-                  >
-                    View Public Link
-                  </a>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
+        <PublicReportsList publicReports={publicReports} />
       )}
     </section>
   );

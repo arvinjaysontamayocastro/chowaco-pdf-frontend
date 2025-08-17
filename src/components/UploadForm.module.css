@@ -120,7 +120,12 @@
   color: #888888;
   font-weight: bolder;
 }
-
+.badge2 {
+  background-color: #091320;
+  display: inline-block;
+  position: relative;
+  color: #ffffff;
+}
 /* Responsive tweaks */
 @media screen and (max-width: 1920px) {
   .form h1 {

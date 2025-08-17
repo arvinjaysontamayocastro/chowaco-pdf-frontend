@@ -39,7 +39,12 @@
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 12px;
 }
-
+.header {
+  display: block;
+  position: relative;
+  margin-top: 48px;
+  text-align: left;
+}
 .card {
   border: 1px solid #e6e6e6;
   border-radius: 12px;
