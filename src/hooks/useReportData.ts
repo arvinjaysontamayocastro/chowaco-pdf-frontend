@@ -1,14 +1,9 @@
-
-// hooks/useReportData.ts
-// Encapsulates data fetching + state logic for PDFReport
-
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { ExtractedReport } from '../types/types';
 
-export function useReportData(reportId: string) {
-  const [data, setData] = useState<ExtractedReport | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+export function useReportData(reportId?: string) {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -17,8 +12,9 @@ export function useReportData(reportId: string) {
         setLoading(true);
         const res = await api.get(`/reports/${reportId}`);
         setData(res.data);
-      } catch (err: any) {
-        setError(err.message ?? 'Unknown error');
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(message ?? 'Unknown error');
       } finally {
         setLoading(false);
       }

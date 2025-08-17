@@ -11,14 +11,16 @@ import {
   CreateOpenLinkResponse,
 } from '../types/types';
 import {
+  ReportsIndex,
+  ReportsIndexItem,
   loadReportsIndex,
   saveReportsIndex,
   formatSize,
 } from '../services/reports.service';
 
 interface UploadedReportsListProps {
-  reportsIndex: Record<string, any>;
-  setReportsIndex: (next: Record<string, any>) => void;
+  reportsIndex: ReportsIndex;
+  setReportsIndex: (next: ReportsIndex) => void;
 }
 
 interface PublicReport {
@@ -38,13 +40,21 @@ export default function UploadedReportsList({
   const [noteById, setNoteById] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
-  // ---- fetch public reports
   useEffect(() => {
     if (activeTab === 'public') {
       api
-        .get<PublicReport[]>('/openlinks')
+        .get('/open-links')
         .then((res) => {
-          setPublicReports(res.data || []);
+          const data = Array.isArray(res.data) ? res.data : [];
+          setPublicReports(
+            data.map((x: any) => ({
+              id: x.id ?? '',
+              guid: x.guid ?? '',
+              meta: x.meta ?? undefined,
+              url: x.url ?? '',
+              createdAt: x.createdAt ?? undefined,
+            }))
+          );
         })
         .catch(() => {
           setPublicReports([]);
@@ -65,7 +75,7 @@ export default function UploadedReportsList({
 
       const meta: MetaJson = {
         guid,
-        name: (local as any).name,
+        name: local.name,
         totals: {
           goals: Array.isArray(local.goals) ? local.goals.length : 0,
           bmps: Array.isArray(local.bmps) ? local.bmps.length : 0,
@@ -82,20 +92,17 @@ export default function UploadedReportsList({
         data: local as unknown as Record<string, unknown>,
       };
 
-      const res = await api.post<CreateOpenLinkResponse>('/openlinks', body, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-
+      const res = await api.post<CreateOpenLinkResponse>('/open-links', body);
       const url = res.data?.url;
       const publicId = res.data?.publicId;
 
       if (url && publicId) {
-        const next = {
+        const next: ReportsIndex = {
           ...reportsIndex,
           [guid]: {
             ...(reportsIndex[guid] ?? {
               id: guid,
-              fileName: (local as any).name ?? 'PDF',
+              fileName: local.name ?? 'PDF',
               fileSizeBytes: 0,
             }),
             isPublicKey: true,
@@ -120,10 +127,10 @@ export default function UploadedReportsList({
   });
 
   return (
-    <section className={classes.structured} aria-label="Uploaded PDF Reports">
-      <h2 style={{ textAlign: 'left', marginTop: '1rem' }}>
-        Uploaded PDF Reports
-      </h2>
+    <section className={classes.container}>
+      <header className={classes.header}>
+        <h2>Uploaded Reports</h2>
+      </header>
 
       {/* Tabs */}
       <div className={classes.tabbuttons}>
@@ -141,12 +148,14 @@ export default function UploadedReportsList({
         </button>
       </div>
 
-      {/* Local Reports */}
+      {/* Tab content */}
       {activeTab === 'local' && (
         <>
-          {localCards.length === 0 ? (
-            <p style={{ textAlign: 'left' }}>No uploads yet.</p>
-          ) : (
+          {localCards.length === 0 && (
+            <div className={classes.emptyState}>No local reports yet.</div>
+          )}
+
+          {localCards.length > 0 && (
             <div
               style={{
                 display: 'grid',
@@ -155,12 +164,13 @@ export default function UploadedReportsList({
                 marginTop: '12px',
               }}
             >
-              {localCards.map((c, idx) => {
+              {localCards.map((c) => {
+                const guid = c.id;
                 const local = DataService.getData(
-                  c.id
+                  guid
                 ) as ExtractedReport | null;
                 const isLocalCopy = Boolean(local);
-                const displayName = (local as any)?.name ?? `PDF ${idx + 1}`;
+                const displayName = local?.name ?? `PDF ${guid.slice(0, 6)}`;
 
                 return (
                   <div
@@ -181,91 +191,42 @@ export default function UploadedReportsList({
                         marginBottom: 6,
                       }}
                     >
-                      <strong className={classes.filename}>
-                        {displayName}
-                      </strong>
-
-                      {c.isPublicKey ? (
-                        <span
-                          style={{
-                            fontSize: 12,
-                            padding: '2px 8px',
-                            borderRadius: 999,
-                            background:
-                              'linear-gradient(to right, rgb(250, 204, 21), rgb(45, 212, 191))',
-                            color: '#101010',
-                            fontWeight: 700,
-                          }}
-                        >
-                          Public
-                        </span>
-                      ) : null}
+                      <strong style={{ fontSize: 16 }}>{displayName}</strong>
+                      <span style={{ fontSize: 12, opacity: 0.7 }}>
+                        {formatSize(c.fileSizeBytes)}
+                      </span>
                     </div>
 
-                    <div style={{ fontSize: 14, color: '#444' }}>
-                      <div>File: {c.fileName}</div>
-                      <div>Size: {formatSize(c.fileSizeBytes)}</div>
+                    <div
+                      style={{ fontSize: 12, opacity: 0.8, marginBottom: 8 }}
+                    >
+                      {c.fileName}
                     </div>
 
-                    <div style={{ marginTop: 6 }}>
-                      <textarea
-                        rows={2}
-                        placeholder="Optional note (max 300 chars)"
-                        maxLength={300}
-                        value={noteById[c.id] || ''}
-                        onChange={(e) =>
-                          setNoteById({ ...noteById, [c.id]: e.target.value })
-                        }
-                        style={{
-                          width: '100%',
-                          fontSize: 12,
-                          padding: '4px',
-                          border: '1px solid #ccc',
-                          borderRadius: 6,
-                          resize: 'none',
-                        }}
-                      />
-                    </div>
-
-                    <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button onClick={() => navigate(`/${guid}`)}>Open</button>
                       {isLocalCopy && (
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/${c.id}`)}
-                          style={{
-                            appearance: 'none',
-                            border: '1px solid #dcdcdc',
-                            background: '#ffffff',
-                            color: '#222',
-                            padding: '0.35rem 0.8rem',
-                            borderRadius: 10,
-                            fontWeight: 600,
-                            fontSize: '0.9rem',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          Open
+                        <button onClick={() => handleMakePublic(guid)}>
+                          Make Public
                         </button>
                       )}
-
-                      {isLocalCopy && !c.isPublicKey && (
-                        <button
-                          type="button"
-                          onClick={() => handleMakePublic(c.id)}
+                      {c.publicUrl && (
+                        <a
+                          href={c.publicUrl}
+                          target="_blank"
+                          rel="noreferrer"
                           style={{
-                            appearance: 'none',
-                            border: '1px solid #101010',
-                            background: '#101010',
-                            color: '#fff',
-                            padding: '0.35rem 0.8rem',
-                            borderRadius: 10,
-                            fontWeight: 700,
-                            fontSize: '0.9rem',
-                            cursor: 'pointer',
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            padding: '0.35rem 0.6rem',
+                            border: '1px solid #ddd',
+                            borderRadius: 8,
                           }}
                         >
-                          Make it Public
-                        </button>
+                          View Public Link
+                        </a>
                       )}
                     </div>
                   </div>
@@ -276,12 +237,13 @@ export default function UploadedReportsList({
         </>
       )}
 
-      {/* Public Reports */}
       {activeTab === 'public' && (
         <>
-          {publicReports.length === 0 ? (
-            <p style={{ textAlign: 'left' }}>No public reports yet.</p>
-          ) : (
+          {publicReports.length === 0 && (
+            <div className={classes.emptyState}>No public reports found.</div>
+          )}
+
+          {publicReports.length > 0 && (
             <div
               style={{
                 display: 'grid',
@@ -301,33 +263,43 @@ export default function UploadedReportsList({
                     textAlign: 'left',
                   }}
                 >
-                  <strong>{p.meta?.name ?? 'Untitled PDF'}</strong>
-                  <div style={{ fontSize: 14, color: '#444', marginTop: 4 }}>
-                    <div>File: {p.meta?.fileName}</div>
-                    <div>Size: {formatSize(p.meta?.fileSizeBytes)}</div>
-                    {p.meta?.note && <p>Note: {p.meta.note}</p>}
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 6,
+                    }}
+                  >
+                    <strong style={{ fontSize: 16 }}>
+                      {p.meta?.name ?? `Public ${p.id.slice(0, 6)}`}
+                    </strong>
+                    <span style={{ fontSize: 12, opacity: 0.7 }}>
+                      {p.createdAt
+                        ? new Date(p.createdAt).toLocaleString()
+                        : ''}
+                    </span>
                   </div>
-                  {p.url && (
-                    <a
-                      href={p.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{
-                        display: 'inline-block',
-                        marginTop: 8,
-                        padding: '0.35rem 0.8rem',
-                        borderRadius: 10,
-                        border: '1px solid #dcdcdc',
-                        background: '#ffffff',
-                        color: '#222',
-                        fontWeight: 600,
-                        fontSize: '0.9rem',
-                        textDecoration: 'none',
-                      }}
-                    >
-                      View Public Link
-                    </a>
-                  )}
+                  <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 8 }}>
+                    {p.meta?.fileName} •{' '}
+                    {formatSize(p.meta?.fileSizeBytes ?? 0)}
+                  </div>
+                  <a
+                    href={p.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '0.35rem 0.6rem',
+                      border: '1px solid #ddd',
+                      borderRadius: 8,
+                    }}
+                  >
+                    View Public Link
+                  </a>
                 </div>
               ))}
             </div>

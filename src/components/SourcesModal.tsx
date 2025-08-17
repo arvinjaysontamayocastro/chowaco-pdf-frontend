@@ -1,7 +1,8 @@
 import classes from './SourcesModal.module.css';
+import type { SourceItem } from '../types/types';
 
 interface SourcesModalProps {
-  sources: any[];
+  sources: SourceItem[];
   onClose: () => void;
 }
 
@@ -20,12 +21,23 @@ export default function SourcesModal({ sources, onClose }: SourcesModalProps) {
         <section className={classes.content}>
           {sources.length === 0 && <p>No sources available.</p>}
           {sources.length > 0 && (
-            <ul>
-              {sources.map((src:any, idx:number) => (
-                <li key={idx}>
-                  <span>{src?.snippet || (typeof src === 'string' ? src : '')}</span> {typeof src?.page==='number' && <em> (p.{src.page})</em>}
-                    {src}
-                  </a>
+            <ul className={classes.list}>
+              {sources.map((src: SourceItem, idx: number) => (
+                <li key={idx} className={classes.item}>
+                  <div className={classes.itemTitle}>
+                    {src.label ?? src.url ?? `Source #${idx + 1}`}
+                  </div>
+                  {typeof src.page === 'number' && (
+                    <div className={classes.itemMeta}>p. {src.page}</div>
+                  )}
+                  {src.url && (
+                    <a href={src.url} target="_blank" rel="noreferrer">
+                      Open link
+                    </a>
+                  )}
+                  {src.note && (
+                    <p className={classes.itemNote}>{String(src.note)}</p>
+                  )}
                 </li>
               ))}
             </ul>

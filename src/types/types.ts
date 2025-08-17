@@ -13,34 +13,27 @@ export interface GeographicArea {
   huc?: string;
   ecoregionLevel3?: string;
   ecoregionLevel4?: string;
-  county?: string;
-  centroid?: { lat: number; lng: number };
-  areaUnits?: string;
 }
 
 export interface Pollutant {
   name: string;
-  currentLoad?: number | string;
-  targetLoad?: number | string;
-  unit?: string;
+  loadUnit?: string;
+  baselineLoad?: number;
+  targetLoad?: number;
+  currentLoad?: number;
 }
 
 export interface Goal {
   id: number;
   description: string;
-  completionRate: string;
-  category?: string;
-  targetDate?: string;
-  relatedPollutants?: string[];
-  successMetrics?: string[];
+  targetYear?: number;
+  completionRate?: number | null;
 }
 
 export interface BMP {
+  id: number;
   name: string;
-  sizeAmount: number;
-  sizeUnits: string;
-  estimatedCost: number;
-  estimatedCurrency: string;
+  description?: string;
   bmptype?: string;
   location?: { lat: number; lng: number } | string;
   expectedLoadReduction?: { pollutant: string; amount: number; unit: string }[];
@@ -56,30 +49,29 @@ export interface ImplementationActivity {
   phase?: string;
   start?: string;
   end?: string;
-  responsibleParties?: string[];
-  dependencies?: number[];
+  status?: string;
+  cost?: number;
+  currency?: string;
 }
 
 export interface MonitoringMetric {
-  parameter: string;
-  threshold: string;
+  id: number;
+  metric: string;
+  unit?: string;
   method?: string;
   frequency?: string;
-  location?: { lat: number; lng: number } | string;
   baseline?: number;
   target?: number;
-  unit?: string;
+  current?: number;
 }
 
 export interface OutreachActivity {
   id: number;
-  description: string;
-  intendedAudience: string;
+  name: string;
+  targetAudience?: string;
+  description?: string;
   date?: string;
   location?: string;
-  budget?: number;
-  materials?: string[];
-  partners?: string[];
 }
 
 export interface Summary {
@@ -104,6 +96,7 @@ export interface ExtractedReport {
   fileName: string;
   fileSizeBytes: number;
 }
+
 export interface MetaJson {
   guid: string;
   name?: string;
@@ -128,4 +121,13 @@ export interface CreateOpenLinkResponse {
   publicId: string;
   url: string;
   createdAt: string;
+}
+
+/** Generic source/citation item for displays */
+export interface SourceItem {
+  label?: string;
+  page?: number;
+  url?: string;
+  note?: string;
+  [k: string]: unknown;
 }
